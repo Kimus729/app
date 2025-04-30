@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image'; // Import next/image
 import { Dropzone } from '@/components/dropzone';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,8 +55,44 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-background">
-      <div className="w-full max-w-2xl space-y-8">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-background overflow-hidden">
+       {/* Background Cat Images */}
+       <Image
+         src="https://picsum.photos/seed/cat1/300/200"
+         alt="Background cat image 1"
+         width={300}
+         height={200}
+         className="fixed -z-10 opacity-10 rounded-lg shadow-md top-10 left-10 object-cover"
+         data-ai-hint="cat"
+         priority
+       />
+        <Image
+         src="https://picsum.photos/seed/cat2/250/350"
+         alt="Background cat image 2"
+         width={250}
+         height={350}
+         className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-5 right-5 object-cover"
+         data-ai-hint="cat"
+       />
+       <Image
+         src="https://picsum.photos/seed/cat3/200/200"
+         alt="Background cat image 3"
+         width={200}
+         height={200}
+         className="fixed -z-10 opacity-10 rounded-full shadow-md top-1/3 right-20 transform -translate-y-1/2 object-cover"
+         data-ai-hint="cat"
+       />
+        <Image
+         src="https://picsum.photos/seed/cat4/400/250"
+         alt="Background cat image 4"
+         width={400}
+         height={250}
+         className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-1/4 left-16 transform translate-y-1/2 object-cover"
+         data-ai-hint="cat"
+       />
+
+      {/* Main Content - Added z-10 to ensure it's above background images */}
+      <div className="relative z-10 w-full max-w-2xl space-y-8">
         <Dropzone onHashCalculated={handleHashCalculated} className="w-full" />
 
         {fileName && (
@@ -92,6 +129,7 @@ export default function Home() {
           </Card>
         )}
       </div>
+      {/* Toaster remains outside the main content div but inside main */}
       <Toaster />
     </main>
   );
