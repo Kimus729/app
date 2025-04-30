@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr"> {/* Change lang to fr */}
-       {/* Apply the font class to the body */}
+    <html lang="fr">{/* Change lang to fr */}
+      {/* Apply the font class to the body */}
       <body className={`${inter.className} antialiased`}>
         {children}
         <Toaster /> {/* Add Toaster here */}
