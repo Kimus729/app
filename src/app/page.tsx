@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Copy, Terminal } from 'lucide-react';
+import { Copy, Terminal, User, Hash, Wallet } from 'lucide-react'; // Added icons
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Import Alert
+import { Separator } from '@/components/ui/separator'; // Import Separator
 
 interface AccountData {
   address: string;
@@ -77,9 +78,10 @@ export default function Home() {
     }
   };
 
-  const copyToClipboard = (textToCopy: string, type: string) => {
-    if (textToCopy) {
-      navigator.clipboard.writeText(textToCopy)
+  const copyToClipboard = (textToCopy: string | number, type: string) => {
+    const text = String(textToCopy); // Ensure text is string
+    if (text) {
+      navigator.clipboard.writeText(text)
         .then(() => {
           toast({
             title: "Copied to Clipboard!",
@@ -94,6 +96,17 @@ export default function Home() {
              description: `Could not copy the ${type} to clipboard.`,
            });
         });
+    }
+  };
+
+  // Helper to format large balance numbers (optional, adjust as needed)
+  const formatBalance = (balance: string): string => {
+    try {
+      const balanceBigInt = BigInt(balance);
+      const egldValue = Number(balanceBigInt) / 10**18; // EGLD has 18 decimals
+      return `${egldValue.toLocaleString(undefined, { maximumFractionDigits: 6 })} eGLD`;
+    } catch (e) {
+      return balance; // Fallback to raw string if conversion fails
     }
   };
 
@@ -177,7 +190,7 @@ export default function Home() {
         <Card className="w-full bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>MultiversX Account Data</CardTitle>
-            <CardDescription>Data fetched from testnet API</CardDescription>
+            <CardDescription>Formatted data fetched from testnet API</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoadingData ? (
@@ -185,6 +198,7 @@ export default function Home() {
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
                 <Skeleton className="h-4 w-5/6" />
+                 <Skeleton className="h-4 w-2/3" />
               </div>
             ) : fetchError ? (
               <Alert variant="destructive">
@@ -193,32 +207,107 @@ export default function Home() {
                 <AlertDescription>{fetchError}</AlertDescription>
               </Alert>
             ) : accountData ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                   <Label htmlFor="account-address">Address</Label>
+              <div className="space-y-6">
+                {/* Key Account Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <Label htmlFor="account-address" className="w-20 shrink-0">Address</Label>
+                      <div className="flex items-center space-x-2 flex-grow">
+                         <Input
+                            id="account-address"
+                            type="text"
+                            value={accountData.address}
+                            readOnly
+                            className="font-mono text-xs sm:text-sm flex-grow bg-input/70 h-9"
+                            aria-label="Account Address"
+                         />
+                         <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => copyToClipboard(accountData.address, 'address')}
+                            aria-label="Copy address to clipboard"
+                            className="bg-primary/80 hover:bg-primary h-9 w-9"
+                         >
+                            <Copy className="h-4 w-4" />
+                         </Button>
+                      </div>
+                  </div>
+                   {accountData.username && (
+                     <div className="flex items-center space-x-2">
+                         <User className="h-5 w-5 text-primary" />
+                         <Label htmlFor="account-username" className="w-20 shrink-0">Username</Label>
+                         <Input
+                           id="account-username"
+                           type="text"
+                           value={accountData.username}
+                           readOnly
+                           className="font-mono text-sm flex-grow bg-input/70 h-9"
+                           aria-label="Account Username"
+                         />
+                      </div>
+                   )}
                    <div className="flex items-center space-x-2">
+                     <Hash className="h-5 w-5 text-primary" />
+                     <Label htmlFor="account-nonce" className="w-20 shrink-0">Nonce</Label>
                       <Input
-                         id="account-address"
-                         type="text"
-                         value={accountData.address}
-                         readOnly
-                         className="font-mono text-sm flex-grow bg-input/70"
-                         aria-label="Account Address"
+                        id="account-nonce"
+                        type="number"
+                        value={accountData.nonce}
+                        readOnly
+                        className="text-sm flex-grow bg-input/70 h-9"
+                        aria-label="Account Nonce"
                       />
                       <Button
                          variant="outline"
                          size="icon"
-                         onClick={() => copyToClipboard(accountData.address, 'address')}
-                         aria-label="Copy address to clipboard"
-                          className="bg-primary/80 hover:bg-primary"
+                         onClick={() => copyToClipboard(accountData.nonce, 'nonce')}
+                         aria-label="Copy nonce to clipboard"
+                         className="bg-primary/80 hover:bg-primary h-9 w-9"
                       >
                          <Copy className="h-4 w-4" />
                       </Button>
                    </div>
-                 </div>
-                <pre className="text-xs bg-muted/50 p-4 rounded-md overflow-x-auto max-h-60 font-mono">
-                  {JSON.stringify(accountData, null, 2)}
-                </pre>
+                   <div className="flex items-center space-x-2">
+                     <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span>
+                     <Label htmlFor="account-balance" className="w-20 shrink-0">Balance</Label>
+                      <Input
+                         id="account-balance"
+                         type="text"
+                         value={formatBalance(accountData.balance)}
+                         readOnly
+                         className="text-sm flex-grow bg-input/70 h-9"
+                         aria-label="Account Balance"
+                      />
+                      <Button
+                         variant="outline"
+                         size="icon"
+                         onClick={() => copyToClipboard(accountData.balance, 'raw balance')}
+                         aria-label="Copy raw balance to clipboard"
+                         className="bg-primary/80 hover:bg-primary h-9 w-9"
+                      >
+                         <Copy className="h-4 w-4" />
+                      </Button>
+                   </div>
+                </div>
+
+                <Separator />
+
+                 {/* Other Details */}
+                <div className="space-y-3">
+                  <h4 className="text-md font-semibold mb-2 text-foreground/80">Other Details</h4>
+                   {Object.entries(accountData)
+                      .filter(([key]) => !['address', 'nonce', 'balance', 'username'].includes(key)) // Filter out already displayed keys
+                      .map(([key, value]) => (
+                        <div key={key} className="flex items-start space-x-2 text-sm">
+                           <Label className="w-24 shrink-0 capitalize text-muted-foreground pt-1">{key.replace(/([A-Z])/g, ' $1')}:</Label> {/* Add space before caps */}
+                          <span className="flex-grow break-all font-mono text-xs bg-muted/30 px-2 py-1 rounded">
+                              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                           </span>
+                        </div>
+                   ))}
+                </div>
+
               </div>
             ) : (
                <p className="text-sm text-muted-foreground">No account data available.</p>
