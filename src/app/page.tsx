@@ -55,7 +55,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-background overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-green-400 to-yellow-400 overflow-hidden">
        {/* Background Cat Images */}
        <Image
          src="https://picsum.photos/seed/cat1/300/200"
@@ -96,7 +96,7 @@ export default function Home() {
         <Dropzone onHashCalculated={handleHashCalculated} className="w-full" />
 
         {fileName && (
-          <Card className="w-full">
+          <Card className="w-full bg-card/80 backdrop-blur-sm"> {/* Added backdrop blur for better readability */}
             <CardHeader>
               <CardTitle>Calculation Result</CardTitle>
               <CardDescription>SHA-256 Hash for: {fileName}</CardDescription>
@@ -110,7 +110,7 @@ export default function Home() {
                     type="text"
                     value={hash || 'Calculating or error...'}
                     readOnly
-                    className="font-mono text-sm flex-grow"
+                    className="font-mono text-sm flex-grow bg-input/70" // Slightly transparent input
                     aria-label="Calculated SHA-256 hash"
                   />
                   <Button
@@ -119,6 +119,7 @@ export default function Home() {
                     onClick={copyToClipboard}
                     disabled={!hash}
                     aria-label="Copy hash to clipboard"
+                    className="bg-primary/80 hover:bg-primary" // Adjusted button style
                   >
                     <Copy className="h-4 w-4" />
                   </Button>

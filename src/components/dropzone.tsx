@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useCallback, useId } from 'react'; // Import useId
+import React, { useState, useCallback, useEffect, useId } from 'react'; // Import useEffect, useId
 import { UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +20,13 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0); // Progress is simulated for now
-  const inputId = useId(); // Use React's useId hook
+  const [inputId, setInputId] = useState(''); // State for ID
+
+  // Generate ID on client-side only
+  useEffect(() => {
+    setInputId(`file-input-${Math.random().toString(36).substring(2, 9)}`);
+  }, []);
+
 
   const calculateSHA256 = useCallback(async (fileToHash: File): Promise<string> => {
     const buffer = await fileToHash.arrayBuffer();
@@ -71,8 +77,11 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    // Check if the relatedTarget (where the drag is leaving to) is outside the dropzone
+     if (e.relatedTarget && (e.relatedTarget as Node).contains(e.currentTarget)) return;
     setIsDragging(false);
   }, []);
+
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -99,6 +108,8 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
     if (files && files.length > 0) {
       handleFile(files[0]);
     }
+     // Reset file input to allow re-uploading the same file
+     e.target.value = '';
   }, [handleFile]);
 
 
@@ -106,7 +117,8 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
     <Card
       className={cn(
         'border-2 border-dashed border-primary/50 transition-all duration-300 ease-in-out hover:border-primary',
-        isDragging ? 'border-primary bg-accent' : '',
+        'bg-card/80 backdrop-blur-sm', // Added backdrop blur
+        isDragging ? 'border-primary bg-accent/90' : '', // Adjusted dragging background
         className
       )}
       onDragEnter={handleDragEnter}
@@ -119,37 +131,41 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
         <CardDescription>Drop a file here or click to upload</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center space-y-4 p-6">
-        <label
-          htmlFor={inputId}
-          className={cn(
-            "flex flex-col items-center justify-center w-full h-48 cursor-pointer",
-             isDragging ? 'opacity-70' : ''
-          )}
-        >
-          <UploadCloud className="w-16 h-16 text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">
-            {isDragging ? 'Drop the file here' : 'Drag & drop a file, or click to select'}
-          </p>
-          <input
-            id={inputId}
-            type="file"
-            className="hidden"
-            onChange={handleFileInputChange}
-            disabled={isCalculating}
-          />
-        </label>
+         {/* Only render the label and input on the client */}
+        {inputId && (
+          <label
+            htmlFor={inputId}
+            className={cn(
+              "flex flex-col items-center justify-center w-full h-48 cursor-pointer",
+              isDragging ? 'opacity-70' : ''
+            )}
+          >
+            <UploadCloud className="w-16 h-16 text-primary mb-4" />
+            <p className="text-sm text-muted-foreground">
+              {isDragging ? 'Drop the file here' : 'Drag & drop a file, or click to select'}
+            </p>
+            <input
+              id={inputId}
+              type="file"
+              className="hidden"
+              onChange={handleFileInputChange}
+              disabled={isCalculating}
+              aria-hidden="true" // Hide from accessibility tree as label handles it
+            />
+          </label>
+        )}
         {file && !isCalculating && !error && (
           <p className="text-sm font-medium">Selected file: {file.name}</p>
         )}
         {isCalculating && (
           <div className="w-full space-y-2 text-center">
              <p className="text-sm font-medium">Calculating hash for: {file?.name}...</p>
-            <Progress value={progress} className="w-full" />
+            <Progress value={progress} className="w-full bg-secondary/50" /> {/* Adjusted progress bar background */}
              <p className="text-xs text-muted-foreground">{progress}%</p>
           </div>
         )}
          {error && (
-           <Alert variant="destructive" className="w-full">
+           <Alert variant="destructive" className="w-full bg-destructive/80 text-destructive-foreground"> {/* Adjusted alert style */}
              <Terminal className="h-4 w-4" />
              <AlertTitle>Error</AlertTitle>
              <AlertDescription>{error}</AlertDescription>
