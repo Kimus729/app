@@ -20,7 +20,12 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0); // Progress is simulated for now
-  const inputId = useId(); // Use useId hook directly
+  const [inputId, setInputId] = useState<string | undefined>(undefined); // State for input ID
+
+  // Ensure inputId is generated only on the client
+  useEffect(() => {
+    setInputId(`file-input-${Math.random().toString(36).substring(2, 8)}`);
+  }, []);
 
 
   const calculateSHA256 = useCallback(async (fileToHash: File): Promise<string> => {
@@ -37,7 +42,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
 
   const handleFile = useCallback(async (droppedFile: File | null) => {
     if (!droppedFile) {
-      setError("No file provided.");
+      setError("Aucun fichier fourni.");
       setFile(null);
       setIsCalculating(false);
       setProgress(0);
@@ -53,8 +58,8 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
       const hash = await calculateSHA256(droppedFile);
       onHashCalculated(hash, droppedFile.name);
     } catch (err) {
-      console.error("Error calculating hash:", err);
-      setError(`Error calculating hash: ${err instanceof Error ? err.message : String(err)}`);
+      console.error("Erreur lors du calcul du hash:", err);
+      setError(`Erreur lors du calcul du hash : ${err instanceof Error ? err.message : String(err)}`);
       onHashCalculated('', droppedFile.name); // Clear hash on error
     } finally {
       setIsCalculating(false);
@@ -123,7 +128,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
     >
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-semibold">Signature Fichier</CardTitle> {/* Updated title */}
-        <CardDescription>Drop a file here or click to upload</CardDescription>
+        <CardDescription>Déposez un fichier ici ou cliquez pour télécharger</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center space-y-4 p-6">
          {/* Only render the label and input on the client */}
@@ -137,7 +142,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
           >
             <UploadCloud className="w-16 h-16 text-primary mb-4" />
             <p className="text-sm text-muted-foreground">
-              {isDragging ? 'Drop the file here' : 'Drag & drop a file, or click to select'}
+              {isDragging ? 'Déposez le fichier ici' : 'Glissez-déposez un fichier, ou cliquez pour sélectionner'}
             </p>
             <input
               id={inputId}
@@ -150,11 +155,11 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
           </label>
         )}
         {file && !isCalculating && !error && (
-          <p className="text-sm font-medium">Selected file: {file.name}</p>
+          <p className="text-sm font-medium">Fichier sélectionné : {file.name}</p>
         )}
         {isCalculating && (
           <div className="w-full space-y-2 text-center">
-             <p className="text-sm font-medium">Calculating hash for: {file?.name}...</p>
+             <p className="text-sm font-medium">Calcul du hash pour : {file?.name}...</p>
             <Progress value={progress} className="w-full bg-secondary/50" /> {/* Adjusted progress bar background */}
              <p className="text-xs text-muted-foreground">{progress}%</p>
           </div>
@@ -162,7 +167,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
          {error && (
            <Alert variant="destructive" className="w-full bg-destructive/80 text-destructive-foreground"> {/* Adjusted alert style */}
              <Terminal className="h-4 w-4" />
-             <AlertTitle>Error</AlertTitle>
+             <AlertTitle>Erreur</AlertTitle>
              <AlertDescription>{error}</AlertDescription>
            </Alert>
          )}

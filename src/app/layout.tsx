@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 
 export const metadata: Metadata = {
-  title: 'signature fichier', // Update title
-  description: 'Calculate SHA-256 hash of local files via drag and drop.', // Update description
+  title: 'Signature de Fichier', // Update title to French
+  description: 'Calculez le hash SHA-256 des fichiers locaux par glisser-déposer.', // Update description to French
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr"> {/* Change lang to fr */}
        {/* Apply the font class to the body */}
       <body className={`${inter.className} antialiased`}>
         {children}

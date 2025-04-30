@@ -37,11 +37,11 @@ export default function Home() {
 
   const fetchAccountData = useCallback(async (addressToFetch: string) => {
     if (!addressToFetch) {
-      setFetchError("Please enter a MultiversX address.");
+      setFetchError("Veuillez entrer une adresse MultiversX.");
        toast({
          variant: "destructive",
-         title: "Missing Address",
-         description: "Please enter a MultiversX address to fetch data.",
+         title: "Adresse Manquante",
+         description: "Veuillez entrer une adresse MultiversX pour récupérer les données.",
        });
       return;
     }
@@ -54,27 +54,27 @@ export default function Home() {
       const response = await fetch(`https://testnet-api.multiversx.com/accounts/${addressToFetch}`);
       if (!response.ok) {
          if (response.status === 404) {
-            throw new Error(`Account not found. Status: ${response.status}`);
+            throw new Error(`Compte non trouvé. Statut : ${response.status}`);
          } else if (response.status === 400) {
-            throw new Error(`Invalid address format. Status: ${response.status}`);
+            throw new Error(`Format d'adresse invalide. Statut : ${response.status}`);
          } else {
-           throw new Error(`HTTP error! status: ${response.status}`);
+           throw new Error(`Erreur HTTP ! statut : ${response.status}`);
          }
       }
       const data: AccountData = await response.json();
       setAccountData(data);
        toast({
-         title: "Data Fetched Successfully",
-         description: `Account data loaded for ${addressToFetch.substring(0, 10)}...`,
+         title: "Données Récupérées avec Succès",
+         description: `Données du compte chargées pour ${addressToFetch.substring(0, 10)}...`,
        });
     } catch (error) {
-      console.error("Failed to fetch account data:", error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error("Échec de la récupération des données du compte:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
       setFetchError(errorMessage);
       setAccountData(null); // Ensure no stale data is shown on error
       toast({
         variant: "destructive",
-        title: "API Fetch Failed",
+        title: "Échec de la Récupération API",
         description: errorMessage,
       });
     } finally {
@@ -103,14 +103,14 @@ export default function Home() {
     setFileName(name);
     if (calculatedHash) {
        toast({
-         title: "Hash Calculated Successfully",
-         description: `SHA-256 hash for ${name} generated.`,
+         title: "Hash Calculé avec Succès",
+         description: `Hash SHA-256 pour ${name} généré.`,
        });
     } else if (name) { // Handle case where hash calculation failed but we have a filename
       toast({
         variant: "destructive",
-        title: "Hash Calculation Failed",
-        description: `Could not calculate hash for ${name}.`,
+        title: "Échec du Calcul du Hash",
+        description: `Impossible de calculer le hash pour ${name}.`,
       });
     }
   };
@@ -121,16 +121,16 @@ export default function Home() {
       navigator.clipboard.writeText(text)
         .then(() => {
           toast({
-            title: "Copied to Clipboard!",
-            description: `The ${type} has been copied.`,
+            title: "Copié dans le Presse-papiers !",
+            description: `Le ${type} a été copié.`, // Use French type here
           });
         })
         .catch(err => {
-          console.error(`Failed to copy ${type}: `, err);
+          console.error(`Échec de la copie ${type}: `, err);
            toast({
              variant: "destructive",
-             title: "Copy Failed",
-             description: `Could not copy the ${type} to clipboard.`,
+             title: "Échec de la Copie",
+             description: `Impossible de copier le ${type} dans le presse-papiers.`, // Use French type here
            });
         });
     }
@@ -141,18 +141,19 @@ export default function Home() {
     try {
       const balanceBigInt = BigInt(balance);
       const egldValue = Number(balanceBigInt) / 10**18; // EGLD has 18 decimals
-      return `${egldValue.toLocaleString(undefined, { maximumFractionDigits: 6 })} eGLD`;
+      // Use French locale for number formatting
+      return `${egldValue.toLocaleString('fr-FR', { maximumFractionDigits: 6 })} eGLD`;
     } catch (e) {
       return balance; // Fallback to raw string if conversion fails
     }
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-blue-200 to-yellow-200 overflow-hidden"> {/* Updated background gradient */}
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-orange-300 to-orange-500 overflow-hidden"> {/* Updated background gradient to orange */}
        {/* Background Cat Images */}
        <Image
          src="https://picsum.photos/seed/cat1/300/200"
-         alt="Background cat image 1"
+         alt="Image de chat en arrière-plan 1" // French alt text
          width={300}
          height={200}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md top-10 left-10 object-cover"
@@ -161,7 +162,7 @@ export default function Home() {
        />
         <Image
          src="https://picsum.photos/seed/cat2/250/350"
-         alt="Background cat image 2"
+         alt="Image de chat en arrière-plan 2" // French alt text
          width={250}
          height={350}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-5 right-5 object-cover"
@@ -169,7 +170,7 @@ export default function Home() {
        />
        <Image
          src="https://picsum.photos/seed/cat3/200/200"
-         alt="Background cat image 3"
+         alt="Image de chat en arrière-plan 3" // French alt text
          width={200}
          height={200}
          className="fixed -z-10 opacity-10 rounded-full shadow-md top-1/3 right-20 transform -translate-y-1/2 object-cover"
@@ -177,7 +178,7 @@ export default function Home() {
        />
         <Image
          src="https://picsum.photos/seed/cat4/400/250"
-         alt="Background cat image 4"
+         alt="Image de chat en arrière-plan 4" // French alt text
          width={400}
          height={250}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-1/4 left-16 transform translate-y-1/2 object-cover"
@@ -191,34 +192,34 @@ export default function Home() {
         {fileName && (
           <Card className="w-full bg-card/80 backdrop-blur-sm"> {/* Added backdrop blur for better readability */}
             <CardHeader>
-              <CardTitle>Hash Calculation Result</CardTitle>
-              <CardDescription>SHA-256 Hash for: {fileName}</CardDescription>
+              <CardTitle>Résultat du Calcul de Hash</CardTitle>
+              <CardDescription>Hash SHA-256 pour : {fileName}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="hash-output">SHA-256 Hash</Label>
+                <Label htmlFor="hash-output">Hash SHA-256</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     id="hash-output"
                     type="text"
-                    value={hash || 'Calculating or error...'}
+                    value={hash || 'Calcul en cours ou erreur...'}
                     readOnly
                     className="font-mono text-sm flex-grow bg-input/70" // Slightly transparent input
-                    aria-label="Calculated SHA-256 hash"
+                    aria-label="Hash SHA-256 calculé"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => copyToClipboard(hash, 'hash')}
                     disabled={!hash}
-                    aria-label="Copy hash to clipboard"
+                    aria-label="Copier le hash dans le presse-papiers"
                     className="bg-primary/80 hover:bg-primary" // Adjusted button style
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              {!hash && <p className="text-sm text-destructive">Hash calculation failed or is in progress.</p>}
+              {!hash && <p className="text-sm text-destructive">Le calcul du hash a échoué ou est en cours.</p>}
             </CardContent>
           </Card>
         )}
@@ -226,21 +227,21 @@ export default function Home() {
         {/* Account Data Section */}
         <Card className="w-full bg-card/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>MultiversX Account Data</CardTitle>
-             <CardDescription>Enter an address and click Fetch to load data.</CardDescription>
+            <CardTitle>Données du Compte MultiversX</CardTitle>
+             <CardDescription>Entrez une adresse et cliquez sur Récupérer pour charger les données.</CardDescription>
               {/* Address Input */}
              <div className="flex items-center space-x-2 pt-4">
-                 <Label htmlFor="address-input" className="sr-only">MultiversX Address</Label>
+                 <Label htmlFor="address-input" className="sr-only">Adresse MultiversX</Label>
                  <Input
                     id="address-input"
                     type="text"
-                    placeholder="Enter MultiversX address (e.g., erd1...)"
+                    placeholder="Entrez l'adresse MultiversX (ex: erd1...)"
                     value={inputAddress}
                     onChange={handleInputChange}
                     className="font-mono text-sm flex-grow bg-input/70"
-                    aria-label="MultiversX Address Input"
+                    aria-label="Champ de saisie de l'adresse MultiversX"
                  />
-                 <Button onClick={handleFetchClick} disabled={isLoadingData} aria-label="Fetch account data">
+                 <Button onClick={handleFetchClick} disabled={isLoadingData} aria-label="Récupérer les données du compte">
                    {isLoadingData ? (
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -249,7 +250,7 @@ export default function Home() {
                     ) : (
                       <Search className="h-4 w-4 mr-2" />
                    )}
-                   {isLoadingData ? 'Fetching...' : 'Fetch'}
+                   {isLoadingData ? 'Récupération...' : 'Récupérer'}
                  </Button>
              </div>
           </CardHeader>
@@ -264,17 +265,17 @@ export default function Home() {
             ) : fetchError ? (
               <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
-                <AlertTitle>Error Fetching Data</AlertTitle>
+                <AlertTitle>Erreur lors de la Récupération des Données</AlertTitle>
                 <AlertDescription>{fetchError}</AlertDescription>
               </Alert>
             ) : accountData ? (
               <div className="space-y-6">
                 {/* Key Account Details */}
-                 <h3 className="text-lg font-medium mt-2">Details for: <span className="font-mono text-sm break-all">{currentAddress}</span></h3>
+                 <h3 className="text-lg font-medium mt-2">Détails pour : <span className="font-mono text-sm break-all">{currentAddress}</span></h3>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                       <Wallet className="h-5 w-5 text-primary" />
-                      <Label htmlFor="account-address" className="w-20 shrink-0">Address</Label>
+                      <Label htmlFor="account-address" className="w-20 shrink-0">Adresse</Label>
                       <div className="flex items-center space-x-2 flex-grow">
                          <Input
                             id="account-address"
@@ -282,13 +283,13 @@ export default function Home() {
                             value={accountData.address}
                             readOnly
                             className="font-mono text-xs sm:text-sm flex-grow bg-input/70 h-9"
-                            aria-label="Account Address"
+                            aria-label="Adresse du Compte"
                          />
                          <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => copyToClipboard(accountData.address, 'address')}
-                            aria-label="Copy address to clipboard"
+                            onClick={() => copyToClipboard(accountData.address, 'adresse')}
+                            aria-label="Copier l'adresse dans le presse-papiers"
                             className="bg-primary/80 hover:bg-primary h-9 w-9"
                          >
                             <Copy className="h-4 w-4" />
@@ -298,14 +299,14 @@ export default function Home() {
                    {accountData.username && (
                      <div className="flex items-center space-x-2">
                          <User className="h-5 w-5 text-primary" />
-                         <Label htmlFor="account-username" className="w-20 shrink-0">Username</Label>
+                         <Label htmlFor="account-username" className="w-20 shrink-0">Nom d'utilisateur</Label>
                          <Input
                            id="account-username"
                            type="text"
                            value={accountData.username}
                            readOnly
                            className="font-mono text-sm flex-grow bg-input/70 h-9"
-                           aria-label="Account Username"
+                           aria-label="Nom d'utilisateur du Compte"
                          />
                       </div>
                    )}
@@ -318,13 +319,13 @@ export default function Home() {
                         value={accountData.nonce}
                         readOnly
                         className="text-sm flex-grow bg-input/70 h-9"
-                        aria-label="Account Nonce"
+                        aria-label="Nonce du Compte"
                       />
                       <Button
                          variant="outline"
                          size="icon"
                          onClick={() => copyToClipboard(accountData.nonce, 'nonce')}
-                         aria-label="Copy nonce to clipboard"
+                         aria-label="Copier le nonce dans le presse-papiers"
                          className="bg-primary/80 hover:bg-primary h-9 w-9"
                       >
                          <Copy className="h-4 w-4" />
@@ -332,20 +333,20 @@ export default function Home() {
                    </div>
                    <div className="flex items-center space-x-2">
                      <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span>
-                     <Label htmlFor="account-balance" className="w-20 shrink-0">Balance</Label>
+                     <Label htmlFor="account-balance" className="w-20 shrink-0">Solde</Label>
                       <Input
                          id="account-balance"
                          type="text"
                          value={formatBalance(accountData.balance)}
                          readOnly
                          className="text-sm flex-grow bg-input/70 h-9"
-                         aria-label="Account Balance"
+                         aria-label="Solde du Compte"
                       />
                       <Button
                          variant="outline"
                          size="icon"
-                         onClick={() => copyToClipboard(accountData.balance, 'raw balance')}
-                         aria-label="Copy raw balance to clipboard"
+                         onClick={() => copyToClipboard(accountData.balance, 'solde brut')}
+                         aria-label="Copier le solde brut dans le presse-papiers"
                          className="bg-primary/80 hover:bg-primary h-9 w-9"
                       >
                          <Copy className="h-4 w-4" />
@@ -357,7 +358,7 @@ export default function Home() {
 
               </div>
             ) : (
-               <p className="text-sm text-muted-foreground">Enter an address above and click Fetch to view details.</p>
+               <p className="text-sm text-muted-foreground">Entrez une adresse ci-dessus et cliquez sur Récupérer pour voir les détails.</p>
             )}
           </CardContent>
         </Card>
