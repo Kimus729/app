@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useId } from 'react'; // Import useId
 import { UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0); // Progress is simulated for now
+  const inputId = useId(); // Use React's useId hook
 
   const calculateSHA256 = useCallback(async (fileToHash: File): Promise<string> => {
     const buffer = await fileToHash.arrayBuffer();
@@ -100,7 +101,6 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
     }
   }, [handleFile]);
 
-  const inputId = useMemo(() => `file-input-${Math.random().toString(36).substring(7)}`, []);
 
   return (
     <Card
