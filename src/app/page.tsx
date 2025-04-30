@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -97,7 +98,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-orange-400 to-orange-600 overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-blue-200 to-yellow-200 overflow-hidden"> {/* Updated background gradient */}
        {/* Background Cat Images */}
        <Image
          src="https://picsum.photos/seed/cat1/300/200"
