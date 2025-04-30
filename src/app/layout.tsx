@@ -1,20 +1,15 @@
 import type {Metadata} from 'next';
-import {Geist, Geist_Mono} from 'next/font/google';
+// Correctly import fonts from next/font/google
+import { Inter } from 'next/font/google'
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster" // Import Toaster
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
+// Initialize the font with subsets
+const inter = Inter({ subsets: ['latin'] })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
-  title: 'HashDrop', // Update title
+  title: 'signature fichier', // Update title
   description: 'Calculate SHA-256 hash of local files via drag and drop.', // Update description
 };
 
@@ -25,7 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+       {/* Apply the font class to the body */}
+      <body className={`${inter.className} antialiased`}>
         {children}
         <Toaster /> {/* Add Toaster here */}
       </body>
