@@ -1,19 +1,18 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image'; // Import next/image
 import { Dropzone } from '@/components/dropzone';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Copy, Terminal, User, Hash, Wallet } from 'lucide-react'; // Added icons
+import { Copy, Terminal, User, Hash, Wallet, Search } from 'lucide-react'; // Added Search icon
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Import Alert
-// Separator removed as "Other Details" section is removed
 
 interface AccountData {
   address: string;
@@ -24,42 +23,80 @@ interface AccountData {
   [key: string]: any; // Allow for other properties
 }
 
+const DEFAULT_ADDRESS = 'erd1krmnqp7vjy3g2d0xlt355nhhanuft3ev5avneqp6xa9j23g80qesx7g2lj';
 
 export default function Home() {
   const [hash, setHash] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
   const [accountData, setAccountData] = useState<AccountData | null>(null);
-  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(false); // Initially false, load on button click/mount
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [inputAddress, setInputAddress] = useState<string>(DEFAULT_ADDRESS); // State for the input field
+  const [currentAddress, setCurrentAddress] = useState<string>(DEFAULT_ADDRESS); // State for the address being displayed
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchAccountData = async () => {
-      setIsLoadingData(true);
-      setFetchError(null);
-      try {
-        const response = await fetch('https://testnet-api.multiversx.com/accounts/erd1krmnqp7vjy3g2d0xlt355nhhanuft3ev5avneqp6xa9j23g80qesx7g2lj');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: AccountData = await response.json();
-        setAccountData(data);
-      } catch (error) {
-        console.error("Failed to fetch account data:", error);
-        setFetchError(error instanceof Error ? error.message : 'An unknown error occurred');
-        toast({
-          variant: "destructive",
-          title: "API Fetch Failed",
-          description: "Could not fetch account data from MultiversX API.",
-        });
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
+  const fetchAccountData = useCallback(async (addressToFetch: string) => {
+    if (!addressToFetch) {
+      setFetchError("Please enter a MultiversX address.");
+       toast({
+         variant: "destructive",
+         title: "Missing Address",
+         description: "Please enter a MultiversX address to fetch data.",
+       });
+      return;
+    }
+    setIsLoadingData(true);
+    setFetchError(null);
+    setAccountData(null); // Clear previous data
+    setCurrentAddress(addressToFetch); // Update the address being fetched/displayed
 
-    fetchAccountData();
+    try {
+      const response = await fetch(`https://testnet-api.multiversx.com/accounts/${addressToFetch}`);
+      if (!response.ok) {
+         if (response.status === 404) {
+            throw new Error(`Account not found. Status: ${response.status}`);
+         } else if (response.status === 400) {
+            throw new Error(`Invalid address format. Status: ${response.status}`);
+         } else {
+           throw new Error(`HTTP error! status: ${response.status}`);
+         }
+      }
+      const data: AccountData = await response.json();
+      setAccountData(data);
+       toast({
+         title: "Data Fetched Successfully",
+         description: `Account data loaded for ${addressToFetch.substring(0, 10)}...`,
+       });
+    } catch (error) {
+      console.error("Failed to fetch account data:", error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      setFetchError(errorMessage);
+      setAccountData(null); // Ensure no stale data is shown on error
+      toast({
+        variant: "destructive",
+        title: "API Fetch Failed",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoadingData(false);
+    }
      // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, [toast]); // Added toast to dependency array
+
+
+  // Fetch data for the default address on initial mount
+  useEffect(() => {
+    fetchAccountData(DEFAULT_ADDRESS);
+  }, [fetchAccountData]); // fetchAccountData is memoized and safe here
+
+  const handleFetchClick = () => {
+    fetchAccountData(inputAddress);
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputAddress(event.target.value);
+  };
+
 
   const handleHashCalculated = (calculatedHash: string, name: string) => {
     setHash(calculatedHash);
@@ -190,7 +227,31 @@ export default function Home() {
         <Card className="w-full bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>MultiversX Account Data</CardTitle>
-            <CardDescription>Formatted data fetched from testnet API</CardDescription>
+             <CardDescription>Enter an address and click Fetch to load data.</CardDescription>
+              {/* Address Input */}
+             <div className="flex items-center space-x-2 pt-4">
+                 <Label htmlFor="address-input" className="sr-only">MultiversX Address</Label>
+                 <Input
+                    id="address-input"
+                    type="text"
+                    placeholder="Enter MultiversX address (e.g., erd1...)"
+                    value={inputAddress}
+                    onChange={handleInputChange}
+                    className="font-mono text-sm flex-grow bg-input/70"
+                    aria-label="MultiversX Address Input"
+                 />
+                 <Button onClick={handleFetchClick} disabled={isLoadingData} aria-label="Fetch account data">
+                   {isLoadingData ? (
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <Search className="h-4 w-4 mr-2" />
+                   )}
+                   {isLoadingData ? 'Fetching...' : 'Fetch'}
+                 </Button>
+             </div>
           </CardHeader>
           <CardContent>
             {isLoadingData ? (
@@ -209,6 +270,7 @@ export default function Home() {
             ) : accountData ? (
               <div className="space-y-6">
                 {/* Key Account Details */}
+                 <h3 className="text-lg font-medium mt-2">Details for: <span className="font-mono text-sm break-all">{currentAddress}</span></h3>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                       <Wallet className="h-5 w-5 text-primary" />
@@ -295,7 +357,7 @@ export default function Home() {
 
               </div>
             ) : (
-               <p className="text-sm text-muted-foreground">No account data available.</p>
+               <p className="text-sm text-muted-foreground">Enter an address above and click Fetch to view details.</p>
             )}
           </CardContent>
         </Card>
@@ -305,4 +367,3 @@ export default function Home() {
     </main>
   );
 }
-
