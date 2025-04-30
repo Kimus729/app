@@ -20,12 +20,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0); // Progress is simulated for now
-  const [inputId, setInputId] = useState(''); // State for ID
-
-  // Generate ID on client-side only
-  useEffect(() => {
-    setInputId(`file-input-${Math.random().toString(36).substring(2, 9)}`);
-  }, []);
+  const inputId = useId(); // Use useId hook directly
 
 
   const calculateSHA256 = useCallback(async (fileToHash: File): Promise<string> => {
@@ -127,7 +122,7 @@ export function Dropzone({ onHashCalculated, className }: DropzoneProps) {
       onDrop={handleDrop}
     >
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-semibold">HashDrop</CardTitle>
+        <CardTitle className="text-2xl font-semibold">Signature Fichier</CardTitle> {/* Updated title */}
         <CardDescription>Drop a file here or click to upload</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center space-y-4 p-6">
