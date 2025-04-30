@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Copy, Terminal, User, Hash, Wallet, Search } from 'lucide-react'; // Added Search icon
+import { Copy, Terminal, User, Hash, Wallet, Search, AlertCircle } from 'lucide-react'; // Added Search and AlertCircle icons
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
@@ -24,6 +24,14 @@ interface AccountData {
 }
 
 const DEFAULT_ADDRESS = 'erd1krmnqp7vjy3g2d0xlt355nhhanuft3ev5avneqp6xa9j23g80qesx7g2lj';
+const ADDRESS_LENGTH = 62;
+const ADDRESS_PREFIX = 'erd1';
+
+// Basic validation function for MultiversX address
+const isValidMultiversXAddress = (address: string): boolean => {
+  return address.startsWith(ADDRESS_PREFIX) && address.length === ADDRESS_LENGTH;
+};
+
 
 export default function Home() {
   const [hash, setHash] = useState<string>('');
@@ -36,6 +44,7 @@ export default function Home() {
   const { toast } = useToast();
 
   const fetchAccountData = useCallback(async (addressToFetch: string) => {
+    // Basic check - although handleFetchClick does a more specific one
     if (!addressToFetch) {
       setFetchError("Veuillez entrer une adresse MultiversX.");
        toast({
@@ -51,14 +60,18 @@ export default function Home() {
     setCurrentAddress(addressToFetch); // Update the address being fetched/displayed
 
     try {
+      // Use template literal for URL construction
       const response = await fetch(`https://testnet-api.multiversx.com/accounts/${addressToFetch}`);
       if (!response.ok) {
+         // Handle specific known error codes from the API
          if (response.status === 404) {
-            throw new Error(`Compte non trouvé. Statut : ${response.status}`);
+            throw new Error(`Compte non trouvé pour l'adresse fournie.`);
          } else if (response.status === 400) {
-            throw new Error(`Format d'adresse invalide. Statut : ${response.status}`);
+            // This specific error is often due to invalid address format
+            throw new Error(`Format d'adresse invalide ou requête incorrecte.`);
          } else {
-           throw new Error(`Erreur HTTP ! statut : ${response.status}`);
+           // Generic error for other HTTP issues
+           throw new Error(`Erreur API ! Statut : ${response.status}`);
          }
       }
       const data: AccountData = await response.json();
@@ -90,11 +103,29 @@ export default function Home() {
   }, [fetchAccountData]); // fetchAccountData is memoized and safe here
 
   const handleFetchClick = () => {
+     // Add client-side validation before making the API call
+     if (!isValidMultiversXAddress(inputAddress)) {
+       const validationError = `Format d'adresse invalide. Doit commencer par '${ADDRESS_PREFIX}' et avoir ${ADDRESS_LENGTH} caractères.`;
+       setFetchError(validationError);
+       setAccountData(null); // Clear any previous data
+       setCurrentAddress(inputAddress); // Show the invalid address attempted
+       toast({
+         variant: "destructive",
+         title: "Format d'Adresse Invalide",
+         description: validationError,
+       });
+       return; // Stop execution if validation fails
+     }
+     // If validation passes, proceed with fetching
     fetchAccountData(inputAddress);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputAddress(event.target.value);
+     // Optionally clear error when user types
+     if (fetchError) {
+        setFetchError(null);
+     }
   };
 
 
@@ -144,12 +175,13 @@ export default function Home() {
       // Use French locale for number formatting
       return `${egldValue.toLocaleString('fr-FR', { maximumFractionDigits: 6 })} eGLD`;
     } catch (e) {
+      console.warn("Échec du formatage du solde :", e); // Log warning instead of failing silently
       return balance; // Fallback to raw string if conversion fails
     }
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-orange-300 to-orange-500 overflow-hidden"> {/* Updated background gradient to orange */}
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-blue-200 via-yellow-100 to-blue-300 overflow-hidden"> {/* Updated gradient */}
        {/* Background Cat Images */}
        <Image
          src="https://picsum.photos/seed/cat1/300/200"
@@ -219,7 +251,7 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
-              {!hash && <p className="text-sm text-destructive">Le calcul du hash a échoué ou est en cours.</p>}
+              {!hash && fileName && <p className="text-sm text-destructive">Le calcul du hash a échoué ou est en cours.</p>}
             </CardContent>
           </Card>
         )}
@@ -240,6 +272,8 @@ export default function Home() {
                     onChange={handleInputChange}
                     className="font-mono text-sm flex-grow bg-input/70"
                     aria-label="Champ de saisie de l'adresse MultiversX"
+                    aria-invalid={!!fetchError} // Indicate invalid state based on fetchError
+                    aria-describedby={fetchError ? "address-error-alert" : undefined} // Link to error message if present
                  />
                  <Button onClick={handleFetchClick} disabled={isLoadingData} aria-label="Récupérer les données du compte">
                    {isLoadingData ? (
@@ -255,6 +289,15 @@ export default function Home() {
              </div>
           </CardHeader>
           <CardContent>
+             {/* Display Error Alert Above Skeleton/Data */}
+            {fetchError && (
+              <Alert variant="destructive" className="mb-4" id="address-error-alert">
+                <AlertCircle className="h-4 w-4" /> {/* Use AlertCircle for errors */}
+                <AlertTitle>Erreur</AlertTitle> {/* Simplified title */}
+                <AlertDescription>{fetchError}</AlertDescription>
+              </Alert>
+            )}
+
             {isLoadingData ? (
               <div className="space-y-2">
                 <Skeleton className="h-4 w-3/4" />
@@ -262,12 +305,7 @@ export default function Home() {
                 <Skeleton className="h-4 w-5/6" />
                  <Skeleton className="h-4 w-2/3" />
               </div>
-            ) : fetchError ? (
-              <Alert variant="destructive">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Erreur lors de la Récupération des Données</AlertTitle>
-                <AlertDescription>{fetchError}</AlertDescription>
-              </Alert>
+             // Removed redundant error display here, now handled above
             ) : accountData ? (
               <div className="space-y-6">
                 {/* Key Account Details */}
@@ -332,7 +370,7 @@ export default function Home() {
                       </Button>
                    </div>
                    <div className="flex items-center space-x-2">
-                     <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span>
+                     <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span> {/* Using $ icon placeholder */}
                      <Label htmlFor="account-balance" className="w-20 shrink-0">Solde</Label>
                       <Input
                          id="account-balance"
@@ -358,7 +396,8 @@ export default function Home() {
 
               </div>
             ) : (
-               <p className="text-sm text-muted-foreground">Entrez une adresse ci-dessus et cliquez sur Récupérer pour voir les détails.</p>
+               // Show this message only if there's no error and no data yet (initial state before default load finishes)
+              !fetchError && <p className="text-sm text-muted-foreground">Entrez une adresse ci-dessus et cliquez sur Récupérer pour voir les détails.</p>
             )}
           </CardContent>
         </Card>
