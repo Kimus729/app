@@ -13,7 +13,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Import Alert
-import { Separator } from '@/components/ui/separator'; // Import Separator
+// Separator removed as "Other Details" section is removed
 
 interface AccountData {
   address: string;
@@ -291,22 +291,7 @@ export default function Home() {
                    </div>
                 </div>
 
-                <Separator />
-
-                 {/* Other Details */}
-                <div className="space-y-3">
-                  <h4 className="text-md font-semibold mb-2 text-foreground/80">Other Details</h4>
-                   {Object.entries(accountData)
-                      .filter(([key]) => !['address', 'nonce', 'balance', 'username'].includes(key)) // Filter out already displayed keys
-                      .map(([key, value]) => (
-                        <div key={key} className="flex items-start space-x-2 text-sm">
-                           <Label className="w-24 shrink-0 capitalize text-muted-foreground pt-1">{key.replace(/([A-Z])/g, ' $1')}:</Label> {/* Add space before caps */}
-                          <span className="flex-grow break-all font-mono text-xs bg-muted/30 px-2 py-1 rounded">
-                              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                           </span>
-                        </div>
-                   ))}
-                </div>
+                {/* Removed Separator and Other Details section */}
 
               </div>
             ) : (
@@ -320,3 +305,4 @@ export default function Home() {
     </main>
   );
 }
+
