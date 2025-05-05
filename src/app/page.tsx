@@ -348,27 +348,7 @@ export default function Home() {
                          />
                       </div>
                    )}
-                   <div className="flex items-center space-x-2">
-                     <Hash className="h-5 w-5 text-primary" />
-                     <Label htmlFor="account-nonce" className="w-20 shrink-0">Nonce</Label>
-                      <Input
-                        id="account-nonce"
-                        type="number"
-                        value={accountData.nonce}
-                        readOnly
-                        className="text-sm flex-grow bg-input/70 h-9"
-                        aria-label="Nonce du Compte"
-                      />
-                      <Button
-                         variant="outline"
-                         size="icon"
-                         onClick={() => copyToClipboard(accountData.nonce, 'nonce')}
-                         aria-label="Copier le nonce dans le presse-papiers"
-                         className="bg-primary/80 hover:bg-primary h-9 w-9"
-                      >
-                         <Copy className="h-4 w-4" />
-                      </Button>
-                   </div>
+                   {/* Removed Nonce display */}
                    <div className="flex items-center space-x-2">
                      <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span> {/* Using $ icon placeholder */}
                      <Label htmlFor="account-balance" className="w-20 shrink-0">Solde</Label>
