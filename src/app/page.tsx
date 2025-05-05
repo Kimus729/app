@@ -181,7 +181,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-blue-200 via-yellow-100 to-blue-300 overflow-hidden"> {/* Updated gradient */}
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-red-300 to-purple-400 overflow-hidden"> {/* Updated gradient to red-violet */}
        {/* Background Cat Images */}
        <Image
          src="https://picsum.photos/seed/cat1/300/200"
