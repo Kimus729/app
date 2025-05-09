@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Copy, Terminal, User, Hash, Wallet, Search, AlertCircle } from 'lucide-react'; // Added Search and AlertCircle icons
+import { Copy, Terminal, User, Hash, Wallet, Search, AlertCircle, ImageIcon } from 'lucide-react'; // Added Search, AlertCircle, ImageIcon icons
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
@@ -19,15 +19,40 @@ interface AccountData {
   nonce: number;
   balance: string;
   username?: string; // Optional property
-  // Add other relevant fields if needed
   [key: string]: any; // Allow for other properties
 }
+
+interface NftMediaItem {
+  url: string;
+  originalUrl?: string;
+  thumbnailUrl?: string;
+  fileType?: string;
+  fileSize?: number;
+}
+
+interface NftItem {
+  identifier: string;
+  collection?: string;
+  name?: string;
+  description?: string;
+  url?: string;
+  media?: NftMediaItem[];
+  royalties?: number;
+  creator?: string;
+  type?: string;
+  metadata?: {
+    description?: string;
+    image?: string;
+    attributes?: Array<{ trait_type: string; value: string | number }>;
+  };
+  [key: string]: any;
+}
+
 
 const DEFAULT_ADDRESS = 'erd1krmnqp7vjy3g2d0xlt355nhhanuft3ev5avneqp6xa9j23g80qesx7g2lj';
 const ADDRESS_LENGTH = 62;
 const ADDRESS_PREFIX = 'erd1';
 
-// Basic validation function for MultiversX address
 const isValidMultiversXAddress = (address: string): boolean => {
   return address.startsWith(ADDRESS_PREFIX) && address.length === ADDRESS_LENGTH;
 };
@@ -37,94 +62,146 @@ export default function Home() {
   const [hash, setHash] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
   const [accountData, setAccountData] = useState<AccountData | null>(null);
-  const [isLoadingData, setIsLoadingData] = useState<boolean>(false); // Initially false, load on button click/mount
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [inputAddress, setInputAddress] = useState<string>(DEFAULT_ADDRESS); // State for the input field
-  const [currentAddress, setCurrentAddress] = useState<string>(DEFAULT_ADDRESS); // State for the address being displayed
+  const [inputAddress, setInputAddress] = useState<string>(DEFAULT_ADDRESS);
+  const [currentAddress, setCurrentAddress] = useState<string>(DEFAULT_ADDRESS);
+
+  const [nfts, setNfts] = useState<NftItem[] | null>(null);
+  const [isLoadingNfts, setIsLoadingNfts] = useState<boolean>(false);
+  const [nftFetchError, setNftFetchError] = useState<string | null>(null);
+
   const { toast } = useToast();
 
-  const fetchAccountData = useCallback(async (addressToFetch: string) => {
-    // Basic check - although handleFetchClick does a more specific one
-    if (!addressToFetch) {
-      setFetchError("Veuillez entrer une adresse MultiversX.");
-       toast({
-         variant: "destructive",
-         title: "Adresse Manquante",
-         description: "Veuillez entrer une adresse MultiversX pour récupérer les données.",
-       });
-      return;
-    }
-    setIsLoadingData(true);
-    setFetchError(null);
-    setAccountData(null); // Clear previous data
-    setCurrentAddress(addressToFetch); // Update the address being fetched/displayed
-
-    try {
-      // Use template literal for URL construction
-      const response = await fetch(`https://testnet-api.multiversx.com/accounts/${addressToFetch}`);
-      if (!response.ok) {
-         // Handle specific known error codes from the API
-         if (response.status === 404) {
-            throw new Error(`Compte non trouvé pour l'adresse fournie.`);
-         } else if (response.status === 400) {
-            // This specific error is often due to invalid address format
-            throw new Error(`Format d'adresse invalide ou requête incorrecte.`);
-         } else {
-           // Generic error for other HTTP issues
-           throw new Error(`Erreur API ! Statut : ${response.status}`);
-         }
+  const fetchNftsForAccount = useCallback(async (address: string): Promise<NftItem[]> => {
+    const response = await fetch(`https://testnet-api.multiversx.com/accounts/${address}/nfts`);
+    if (!response.ok) {
+      let errorMessage = `Erreur API NFT ! Statut : ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // Failed to parse error JSON, use default message
       }
-      const data: AccountData = await response.json();
-      setAccountData(data);
-       toast({
-         title: "Données Récupérées avec Succès",
-         description: `Données du compte chargées pour ${addressToFetch.substring(0, 10)}...`,
-       });
-    } catch (error) {
-      console.error("Échec de la récupération des données du compte:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
-      setFetchError(errorMessage);
-      setAccountData(null); // Ensure no stale data is shown on error
+      throw new Error(errorMessage);
+    }
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      if (response.status === 404 || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        return []; // Treat 404 or empty object as no NFTs
+      }
+      console.warn("NFT API did not return an array:", data);
+      throw new Error("La réponse de l'API NFT n'était pas dans le format attendu.");
+    }
+    return data;
+  }, []);
+
+
+  const loadDataForAddress = useCallback(async (addressToFetch: string) => {
+    if (!isValidMultiversXAddress(addressToFetch)) {
+      const validationError = `Format d'adresse invalide. Doit commencer par '${ADDRESS_PREFIX}' et avoir ${ADDRESS_LENGTH} caractères.`;
+      setFetchError(validationError);
+      setAccountData(null);
+      setNfts(null);
+      setCurrentAddress(addressToFetch);
       toast({
         variant: "destructive",
-        title: "Échec de la Récupération API",
+        title: "Format d'Adresse Invalide",
+        description: validationError,
+      });
+      return;
+    }
+
+    setIsLoadingData(true);
+    setIsLoadingNfts(true);
+    setFetchError(null);
+    setNftFetchError(null);
+    setAccountData(null);
+    setNfts(null);
+    setCurrentAddress(addressToFetch);
+
+    try {
+      // Fetch account data
+      const accountResponse = await fetch(`https://testnet-api.multiversx.com/accounts/${addressToFetch}`);
+      if (!accountResponse.ok) {
+        if (accountResponse.status === 404) {
+          throw new Error(`Compte non trouvé pour l'adresse fournie.`);
+        } else if (accountResponse.status === 400) {
+          throw new Error(`Format d'adresse invalide ou requête incorrecte (compte).`);
+        } else {
+          throw new Error(`Erreur API Compte ! Statut : ${accountResponse.status}`);
+        }
+      }
+      const accountJson: AccountData = await accountResponse.json();
+      setAccountData(accountJson);
+      toast({
+        title: "Données du Compte Récupérées",
+        description: `Données du compte chargées pour ${addressToFetch.substring(0, 10)}...`,
+      });
+
+      // Fetch NFT data
+      try {
+        const nftData = await fetchNftsForAccount(addressToFetch);
+        setNfts(nftData);
+        if (nftData.length > 0) {
+          toast({
+            title: "NFTs Récupérés",
+            description: `${nftData.length} NFTs chargés pour ${addressToFetch.substring(0, 10)}...`,
+          });
+        } else {
+          toast({
+            title: "Aucun NFT Trouvé",
+            description: `Aucun NFT pour ${addressToFetch.substring(0, 10)}...`,
+          });
+        }
+      } catch (nftApiErrorInstance) {
+        const errorMessage = nftApiErrorInstance instanceof Error ? nftApiErrorInstance.message : 'Erreur inconnue lors de la récupération des NFTs.';
+        console.error("Échec de la récupération des NFTs:", nftApiErrorInstance);
+        setNftFetchError(errorMessage);
+        setNfts([]); // Set to empty array on error
+        toast({
+          variant: "destructive",
+          title: "Échec de la Récupération des NFTs",
+          description: errorMessage,
+        });
+      }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue (compte).';
+      console.error("Échec de la récupération des données du compte:", error);
+      setFetchError(errorMessage);
+      setAccountData(null);
+      setNfts(null);
+      setNftFetchError("La récupération des données du compte a échoué, les NFTs n'ont pas pu être chargés.");
+      toast({
+        variant: "destructive",
+        title: "Échec de la Récupération API Compte",
         description: errorMessage,
       });
     } finally {
       setIsLoadingData(false);
+      setIsLoadingNfts(false);
     }
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast]); // Added toast to dependency array
+  }, [toast, fetchNftsForAccount]);
 
-
-  // Fetch data for the default address on initial mount
   useEffect(() => {
-    fetchAccountData(DEFAULT_ADDRESS);
-  }, [fetchAccountData]); // fetchAccountData is memoized and safe here
+    if (DEFAULT_ADDRESS) { // Ensure default address is not empty
+      loadDataForAddress(DEFAULT_ADDRESS);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadDataForAddress]); // loadDataForAddress is memoized with all its dependencies
 
   const handleFetchClick = () => {
-     // Add client-side validation before making the API call
-     if (!isValidMultiversXAddress(inputAddress)) {
-       const validationError = `Format d'adresse invalide. Doit commencer par '${ADDRESS_PREFIX}' et avoir ${ADDRESS_LENGTH} caractères.`;
-       setFetchError(validationError);
-       setAccountData(null); // Clear any previous data
-       setCurrentAddress(inputAddress); // Show the invalid address attempted
-       toast({
-         variant: "destructive",
-         title: "Format d'Adresse Invalide",
-         description: validationError,
-       });
-       return; // Stop execution if validation fails
-     }
-     // If validation passes, proceed with fetching
-    fetchAccountData(inputAddress);
+    loadDataForAddress(inputAddress);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputAddress(event.target.value);
-     // Optionally clear error when user types
      if (fetchError) {
         setFetchError(null);
+     }
+     if (nftFetchError) {
+        setNftFetchError(null);
      }
   };
 
@@ -137,7 +214,7 @@ export default function Home() {
          title: "Hash Calculé avec Succès",
          description: `Hash SHA-256 pour ${name} généré.`,
        });
-    } else if (name) { // Handle case where hash calculation failed but we have a filename
+    } else if (name) {
       toast({
         variant: "destructive",
         title: "Échec du Calcul du Hash",
@@ -147,13 +224,13 @@ export default function Home() {
   };
 
   const copyToClipboard = (textToCopy: string | number, type: string) => {
-    const text = String(textToCopy); // Ensure text is string
+    const text = String(textToCopy);
     if (text) {
       navigator.clipboard.writeText(text)
         .then(() => {
           toast({
             title: "Copié dans le Presse-papiers !",
-            description: `Le ${type} a été copié.`, // Use French type here
+            description: `Le ${type} a été copié.`,
           });
         })
         .catch(err => {
@@ -161,31 +238,28 @@ export default function Home() {
            toast({
              variant: "destructive",
              title: "Échec de la Copie",
-             description: `Impossible de copier le ${type} dans le presse-papiers.`, // Use French type here
+             description: `Impossible de copier le ${type} dans le presse-papiers.`,
            });
         });
     }
   };
 
-  // Helper to format large balance numbers (optional, adjust as needed)
   const formatBalance = (balance: string): string => {
     try {
       const balanceBigInt = BigInt(balance);
-      const egldValue = Number(balanceBigInt) / 10**18; // EGLD has 18 decimals
-      // Use French locale for number formatting
+      const egldValue = Number(balanceBigInt) / 10**18;
       return `${egldValue.toLocaleString('fr-FR', { maximumFractionDigits: 6 })} eGLD`;
     } catch (e) {
-      console.warn("Échec du formatage du solde :", e); // Log warning instead of failing silently
-      return balance; // Fallback to raw string if conversion fails
+      console.warn("Échec du formatage du solde :", e);
+      return balance;
     }
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-red-300 to-purple-400 overflow-hidden"> {/* Updated gradient to red-violet */}
-       {/* Background Cat Images */}
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-red-300 to-purple-400 overflow-hidden">
        <Image
          src="https://picsum.photos/seed/cat1/300/200"
-         alt="Image de chat en arrière-plan 1" // French alt text
+         alt="Image de chat en arrière-plan 1"
          width={300}
          height={200}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md top-10 left-10 object-cover"
@@ -194,7 +268,7 @@ export default function Home() {
        />
         <Image
          src="https://picsum.photos/seed/cat2/250/350"
-         alt="Image de chat en arrière-plan 2" // French alt text
+         alt="Image de chat en arrière-plan 2"
          width={250}
          height={350}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-5 right-5 object-cover"
@@ -202,7 +276,7 @@ export default function Home() {
        />
        <Image
          src="https://picsum.photos/seed/cat3/200/200"
-         alt="Image de chat en arrière-plan 3" // French alt text
+         alt="Image de chat en arrière-plan 3"
          width={200}
          height={200}
          className="fixed -z-10 opacity-10 rounded-full shadow-md top-1/3 right-20 transform -translate-y-1/2 object-cover"
@@ -210,19 +284,18 @@ export default function Home() {
        />
         <Image
          src="https://picsum.photos/seed/cat4/400/250"
-         alt="Image de chat en arrière-plan 4" // French alt text
+         alt="Image de chat en arrière-plan 4"
          width={400}
          height={250}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-1/4 left-16 transform translate-y-1/2 object-cover"
          data-ai-hint="cat"
        />
 
-      {/* Main Content - Added z-10 to ensure it's above background images */}
-      <div className="relative z-10 w-full max-w-2xl space-y-8">
+      <div className="relative z-10 w-full max-w-4xl space-y-8"> {/* Increased max-width for NFT display */}
         <Dropzone onHashCalculated={handleHashCalculated} className="w-full" />
 
         {fileName && (
-          <Card className="w-full bg-card/80 backdrop-blur-sm"> {/* Added backdrop blur for better readability */}
+          <Card className="w-full bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Résultat du Calcul de Hash</CardTitle>
               <CardDescription>Hash SHA-256 pour : {fileName}</CardDescription>
@@ -236,7 +309,7 @@ export default function Home() {
                     type="text"
                     value={hash || 'Calcul en cours ou erreur...'}
                     readOnly
-                    className="font-mono text-sm flex-grow bg-input/70" // Slightly transparent input
+                    className="font-mono text-sm flex-grow bg-input/70"
                     aria-label="Hash SHA-256 calculé"
                   />
                   <Button
@@ -245,7 +318,7 @@ export default function Home() {
                     onClick={() => copyToClipboard(hash, 'hash')}
                     disabled={!hash}
                     aria-label="Copier le hash dans le presse-papiers"
-                    className="bg-primary/80 hover:bg-primary" // Adjusted button style
+                    className="bg-primary/80 hover:bg-primary"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -256,12 +329,10 @@ export default function Home() {
           </Card>
         )}
 
-        {/* Account Data Section */}
         <Card className="w-full bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Données du Compte MultiversX</CardTitle>
              <CardDescription>Entrez une adresse et cliquez sur Récupérer pour charger les données.</CardDescription>
-              {/* Address Input */}
              <div className="flex items-center space-x-2 pt-4">
                  <Label htmlFor="address-input" className="sr-only">Adresse MultiversX</Label>
                  <Input
@@ -272,11 +343,11 @@ export default function Home() {
                     onChange={handleInputChange}
                     className="font-mono text-sm flex-grow bg-input/70"
                     aria-label="Champ de saisie de l'adresse MultiversX"
-                    aria-invalid={!!fetchError} // Indicate invalid state based on fetchError
-                    aria-describedby={fetchError ? "address-error-alert" : undefined} // Link to error message if present
+                    aria-invalid={!!fetchError || !!nftFetchError}
+                    aria-describedby={fetchError ? "address-error-alert" : nftFetchError ? "nft-error-alert" : undefined}
                  />
-                 <Button onClick={handleFetchClick} disabled={isLoadingData} aria-label="Récupérer les données du compte">
-                   {isLoadingData ? (
+                 <Button onClick={handleFetchClick} disabled={isLoadingData || isLoadingNfts} aria-label="Récupérer les données du compte">
+                   {(isLoadingData || isLoadingNfts) ? (
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -284,16 +355,15 @@ export default function Home() {
                     ) : (
                       <Search className="h-4 w-4 mr-2" />
                    )}
-                   {isLoadingData ? 'Récupération...' : 'Récupérer'}
+                   {(isLoadingData || isLoadingNfts) ? 'Récupération...' : 'Récupérer'}
                  </Button>
              </div>
           </CardHeader>
           <CardContent>
-             {/* Display Error Alert Above Skeleton/Data */}
             {fetchError && (
               <Alert variant="destructive" className="mb-4" id="address-error-alert">
-                <AlertCircle className="h-4 w-4" /> {/* Use AlertCircle for errors */}
-                <AlertTitle>Erreur</AlertTitle> {/* Simplified title */}
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Erreur Compte</AlertTitle>
                 <AlertDescription>{fetchError}</AlertDescription>
               </Alert>
             )}
@@ -305,10 +375,8 @@ export default function Home() {
                 <Skeleton className="h-4 w-5/6" />
                  <Skeleton className="h-4 w-2/3" />
               </div>
-             // Removed redundant error display here, now handled above
             ) : accountData ? (
               <div className="space-y-6">
-                {/* Key Account Details */}
                  <h3 className="text-lg font-medium mt-2">Détails pour : <span className="font-mono text-sm break-all">{currentAddress}</span></h3>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
@@ -348,9 +416,8 @@ export default function Home() {
                          />
                       </div>
                    )}
-                   {/* Removed Nonce display */}
                    <div className="flex items-center space-x-2">
-                     <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span> {/* Using $ icon placeholder */}
+                     <span className="text-primary font-bold text-lg w-5 text-center shrink-0">$</span>
                      <Label htmlFor="account-balance" className="w-20 shrink-0">Solde</Label>
                       <Input
                          id="account-balance"
@@ -371,19 +438,116 @@ export default function Home() {
                       </Button>
                    </div>
                 </div>
-
-                {/* Removed Separator and Other Details section */}
-
               </div>
             ) : (
-               // Show this message only if there's no error and no data yet (initial state before default load finishes)
               !fetchError && <p className="text-sm text-muted-foreground">Entrez une adresse ci-dessus et cliquez sur Récupérer pour voir les détails.</p>
             )}
           </CardContent>
         </Card>
+
+        {/* NFT Data Section */}
+        <Card className="w-full bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle>NFTs du Compte</CardTitle>
+            <CardDescription>
+              {currentAddress ? `NFTs associés à : ${currentAddress.substring(0, 10)}...` : "Aucune adresse sélectionnée."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent id="nft-section">
+            {isLoadingNfts ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i} className="overflow-hidden bg-muted/30">
+                    <Skeleton className="h-40 w-full aspect-square" />
+                    <CardContent className="p-3 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : nftFetchError ? (
+              <Alert variant="destructive" id="nft-error-alert">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Erreur NFTs</AlertTitle>
+                <AlertDescription>{nftFetchError}</AlertDescription>
+              </Alert>
+            ) : nfts && nfts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {nfts.map((nft) => {
+                  let displayImageUrl = '';
+                  if (nft.media && nft.media.length > 0) {
+                    const imageMedia = nft.media.find(m => m.fileType?.startsWith('image/'));
+                    displayImageUrl = imageMedia?.thumbnailUrl || imageMedia?.url || '';
+                  }
+                  if (!displayImageUrl) { // Try metadata or top-level url as fallback
+                     if (nft.metadata?.image) displayImageUrl = nft.metadata.image;
+                     // Basic check if nft.url looks like an image
+                     else if (nft.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) displayImageUrl = nft.url;
+                  }
+
+                  const explorerUrl = `https://explorer.multiversx.com/nfts/${nft.identifier}`;
+
+                  return (
+                    <Card key={nft.identifier} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col group bg-card/90">
+                      <div className="relative w-full aspect-square bg-muted/50 overflow-hidden">
+                        {displayImageUrl ? (
+                          <Image
+                            src={displayImageUrl}
+                            alt={nft.name || nft.identifier}
+                            layout="fill"
+                            objectFit="cover"
+                            className="transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.srcset = ''; // Clear srcset to prevent retry with other sources if used
+                              target.src = `https://picsum.photos/seed/${nft.identifier}/300/300`;
+                              target.dataset.aiHint = "abstract digital";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-muted/70">
+                             <ImageIcon className="w-16 h-16 text-muted-foreground/50" data-ai-hint="placeholder image" />
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-3 flex-grow flex flex-col justify-between space-y-2">
+                        <div>
+                          <h4 className="text-sm font-semibold mb-0.5 truncate" title={nft.name || nft.identifier}>
+                            {nft.name || nft.identifier}
+                          </h4>
+                          {nft.collection && (
+                            <p className="text-xs text-muted-foreground truncate" title={nft.collection}>
+                              Collection: {nft.collection}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground truncate" title={nft.identifier}>
+                            ID: {nft.identifier.length > 20 ? `${nft.identifier.substring(0,17)}...` : nft.identifier}
+                          </p>
+                        </div>
+                        <Button variant="link" size="sm" asChild className="mt-1 self-start p-0 h-auto text-xs">
+                          <a href={explorerUrl} target="_blank" rel="noopener noreferrer">
+                            Voir sur l'explorateur
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {currentAddress && !isLoadingData ? "Aucun NFT trouvé pour ce compte." : "Chargez les données d'un compte pour voir les NFTs."}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
       </div>
-      {/* Toaster remains outside the main content div but inside main */}
       <Toaster />
     </main>
   );
 }
+
+    
