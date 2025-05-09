@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Copy, Terminal, User, Hash, Wallet, Search, AlertCircle, ImageIcon } from 'lucide-react'; // Added Search, AlertCircle, ImageIcon icons
+import { Copy, Search, AlertCircle, ImageIcon, Wallet, User } from 'lucide-react'; // Added Wallet, User icons
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
@@ -16,7 +16,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // 
 
 interface AccountData {
   address: string;
-  nonce: number;
   balance: string;
   username?: string; // Optional property
   [key: string]: any; // Allow for other properties
@@ -116,8 +115,8 @@ export default function Home() {
     setIsLoadingNfts(true);
     setFetchError(null);
     setNftFetchError(null);
-    setAccountData(null);
-    setNfts(null);
+    // setAccountData(null); // Keep previous data visible while loading new
+    // setNfts(null); // Keep previous data visible while loading new
     setCurrentAddress(addressToFetch);
 
     try {
@@ -125,9 +124,11 @@ export default function Home() {
       const accountResponse = await fetch(`https://testnet-api.multiversx.com/accounts/${addressToFetch}`);
       if (!accountResponse.ok) {
         if (accountResponse.status === 404) {
-          throw new Error(`Compte non trouvé pour l'adresse fournie.`);
+          throw new Error(`Compte non trouvé pour l'adresse ${addressToFetch}.`);
         } else if (accountResponse.status === 400) {
-          throw new Error(`Format d'adresse invalide ou requête incorrecte (compte).`);
+           const errorData = await accountResponse.json();
+           const apiMessage = errorData?.message || "Requête incorrecte.";
+          throw new Error(`Format d'adresse invalide ou requête incorrecte (compte): ${apiMessage}`);
         } else {
           throw new Error(`Erreur API Compte ! Statut : ${accountResponse.status}`);
         }
@@ -170,8 +171,8 @@ export default function Home() {
       const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue (compte).';
       console.error("Échec de la récupération des données du compte:", error);
       setFetchError(errorMessage);
-      setAccountData(null);
-      setNfts(null);
+      setAccountData(null); // Clear account data on error
+      setNfts(null); // Clear NFTs on account error
       setNftFetchError("La récupération des données du compte a échoué, les NFTs n'ont pas pu être chargés.");
       toast({
         variant: "destructive",
@@ -185,11 +186,11 @@ export default function Home() {
   }, [toast, fetchNftsForAccount]);
 
   useEffect(() => {
-    if (DEFAULT_ADDRESS) { // Ensure default address is not empty
+    if (DEFAULT_ADDRESS) { 
       loadDataForAddress(DEFAULT_ADDRESS);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadDataForAddress]); // loadDataForAddress is memoized with all its dependencies
+  }, []); // Only run on mount
 
   const handleFetchClick = () => {
     loadDataForAddress(inputAddress);
@@ -230,7 +231,7 @@ export default function Home() {
         .then(() => {
           toast({
             title: "Copié dans le Presse-papiers !",
-            description: `Le ${type} a été copié.`,
+            description: `${type} a été copié.`,
           });
         })
         .catch(err => {
@@ -238,7 +239,7 @@ export default function Home() {
            toast({
              variant: "destructive",
              title: "Échec de la Copie",
-             description: `Impossible de copier le ${type} dans le presse-papiers.`,
+             description: `Impossible de copier ${type} dans le presse-papiers.`,
            });
         });
     }
@@ -251,47 +252,47 @@ export default function Home() {
       return `${egldValue.toLocaleString('fr-FR', { maximumFractionDigits: 6 })} eGLD`;
     } catch (e) {
       console.warn("Échec du formatage du solde :", e);
-      return balance;
+      return balance; // Return original balance string on error
     }
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-red-300 to-purple-400 overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-red-500 via-purple-500 to-pink-500 overflow-hidden">
        <Image
-         src="https://picsum.photos/seed/cat1/300/200"
+         src="https://picsum.photos/seed/bgcat1/300/200"
          alt="Image de chat en arrière-plan 1"
          width={300}
          height={200}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md top-10 left-10 object-cover"
-         data-ai-hint="cat"
+         data-ai-hint="cat playful"
          priority
        />
         <Image
-         src="https://picsum.photos/seed/cat2/250/350"
+         src="https://picsum.photos/seed/bgcat2/250/350"
          alt="Image de chat en arrière-plan 2"
          width={250}
          height={350}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-5 right-5 object-cover"
-         data-ai-hint="cat"
+         data-ai-hint="cat curious"
        />
        <Image
-         src="https://picsum.photos/seed/cat3/200/200"
+         src="https://picsum.photos/seed/bgcat3/200/200"
          alt="Image de chat en arrière-plan 3"
          width={200}
          height={200}
          className="fixed -z-10 opacity-10 rounded-full shadow-md top-1/3 right-20 transform -translate-y-1/2 object-cover"
-         data-ai-hint="cat"
+         data-ai-hint="cat sleeping"
        />
         <Image
-         src="https://picsum.photos/seed/cat4/400/250"
+         src="https://picsum.photos/seed/bgcat4/400/250"
          alt="Image de chat en arrière-plan 4"
          width={400}
          height={250}
          className="fixed -z-10 opacity-10 rounded-lg shadow-md bottom-1/4 left-16 transform translate-y-1/2 object-cover"
-         data-ai-hint="cat"
+         data-ai-hint="cat abstract"
        />
 
-      <div className="relative z-10 w-full max-w-4xl space-y-8"> {/* Increased max-width for NFT display */}
+      <div className="relative z-10 w-full max-w-4xl space-y-8">
         <Dropzone onHashCalculated={handleHashCalculated} className="w-full" />
 
         {fileName && (
@@ -343,8 +344,8 @@ export default function Home() {
                     onChange={handleInputChange}
                     className="font-mono text-sm flex-grow bg-input/70"
                     aria-label="Champ de saisie de l'adresse MultiversX"
-                    aria-invalid={!!fetchError || !!nftFetchError}
-                    aria-describedby={fetchError ? "address-error-alert" : nftFetchError ? "nft-error-alert" : undefined}
+                    aria-invalid={!!fetchError} // Only address error for this input
+                    aria-describedby={fetchError ? "address-error-alert" : undefined}
                  />
                  <Button onClick={handleFetchClick} disabled={isLoadingData || isLoadingNfts} aria-label="Récupérer les données du compte">
                    {(isLoadingData || isLoadingNfts) ? (
@@ -360,7 +361,7 @@ export default function Home() {
              </div>
           </CardHeader>
           <CardContent>
-            {fetchError && (
+            {fetchError && !isLoadingData && (
               <Alert variant="destructive" className="mb-4" id="address-error-alert">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Erreur Compte</AlertTitle>
@@ -368,14 +369,14 @@ export default function Home() {
               </Alert>
             )}
 
-            {isLoadingData ? (
+            {isLoadingData && !accountData && ( // Show skeletons only if no previous data
               <div className="space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
                 <Skeleton className="h-4 w-5/6" />
-                 <Skeleton className="h-4 w-2/3" />
               </div>
-            ) : accountData ? (
+            )}
+            {accountData && ( // Always show data if available, even while loading new
               <div className="space-y-6">
                  <h3 className="text-lg font-medium mt-2">Détails pour : <span className="font-mono text-sm break-all">{currentAddress}</span></h3>
                 <div className="space-y-4">
@@ -405,7 +406,7 @@ export default function Home() {
                    {accountData.username && (
                      <div className="flex items-center space-x-2">
                          <User className="h-5 w-5 text-primary" />
-                         <Label htmlFor="account-username" className="w-20 shrink-0">Nom d'utilisateur</Label>
+                         <Label htmlFor="account-username" className="w-20 shrink-0">Pseudo</Label>
                          <Input
                            id="account-username"
                            type="text"
@@ -439,9 +440,8 @@ export default function Home() {
                    </div>
                 </div>
               </div>
-            ) : (
-              !fetchError && <p className="text-sm text-muted-foreground">Entrez une adresse ci-dessus et cliquez sur Récupérer pour voir les détails.</p>
             )}
+             {!isLoadingData && !accountData && !fetchError && <p className="text-sm text-muted-foreground">Entrez une adresse ci-dessus et cliquez sur Récupérer pour voir les détails.</p>}
           </CardContent>
         </Card>
 
@@ -454,7 +454,14 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent id="nft-section">
-            {isLoadingNfts ? (
+             {nftFetchError && !isLoadingNfts && (
+              <Alert variant="destructive" id="nft-error-alert" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Erreur NFTs</AlertTitle>
+                <AlertDescription>{nftFetchError}</AlertDescription>
+              </Alert>
+            )}
+            {isLoadingNfts && (!nfts || nfts.length === 0) && ( // Show skeletons if no previous NFT data
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, i) => (
                   <Card key={i} className="overflow-hidden bg-muted/30">
@@ -467,13 +474,9 @@ export default function Home() {
                   </Card>
                 ))}
               </div>
-            ) : nftFetchError ? (
-              <Alert variant="destructive" id="nft-error-alert">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Erreur NFTs</AlertTitle>
-                <AlertDescription>{nftFetchError}</AlertDescription>
-              </Alert>
-            ) : nfts && nfts.length > 0 ? (
+            )}
+           
+            {nfts && nfts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {nfts.map((nft) => {
                   let displayImageUrl = '';
@@ -481,9 +484,8 @@ export default function Home() {
                     const imageMedia = nft.media.find(m => m.fileType?.startsWith('image/'));
                     displayImageUrl = imageMedia?.thumbnailUrl || imageMedia?.url || '';
                   }
-                  if (!displayImageUrl) { // Try metadata or top-level url as fallback
+                  if (!displayImageUrl) { 
                      if (nft.metadata?.image) displayImageUrl = nft.metadata.image;
-                     // Basic check if nft.url looks like an image
                      else if (nft.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) displayImageUrl = nft.url;
                   }
 
@@ -496,12 +498,14 @@ export default function Home() {
                           <Image
                             src={displayImageUrl}
                             alt={nft.name || nft.identifier}
-                            layout="fill"
-                            objectFit="cover"
+                            width={300} // Provide width and height for non-fill layouts
+                            height={300}
+                            style={{ objectFit: 'cover' }} // Use style for objectFit with width/height
                             className="transition-transform duration-300 group-hover:scale-105"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.srcset = ''; // Clear srcset to prevent retry with other sources if used
+                              // Fallback to a generic placeholder image
+                              target.srcset = ''; 
                               target.src = `https://picsum.photos/seed/${nft.identifier}/300/300`;
                               target.dataset.aiHint = "abstract digital";
                             }}
@@ -537,7 +541,7 @@ export default function Home() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
+             !isLoadingNfts && !nftFetchError && <p className="text-sm text-muted-foreground">
                 {currentAddress && !isLoadingData ? "Aucun NFT trouvé pour ce compte." : "Chargez les données d'un compte pour voir les NFTs."}
               </p>
             )}
@@ -549,5 +553,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
