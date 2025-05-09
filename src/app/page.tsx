@@ -480,13 +480,19 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {nfts.map((nft) => {
                   let displayImageUrl = '';
-                  if (nft.media && nft.media.length > 0) {
+                  
+                  // 1. Prioritize nft.url if it's an image file
+                  if (nft.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                    displayImageUrl = nft.url;
+                  } 
+                  // 2. Fallback to nft.media if nft.url wasn't a direct image or not present
+                  else if (nft.media && nft.media.length > 0) {
                     const imageMedia = nft.media.find(m => m.fileType?.startsWith('image/'));
                     displayImageUrl = imageMedia?.thumbnailUrl || imageMedia?.url || '';
                   }
-                  if (!displayImageUrl) { 
-                     if (nft.metadata?.image) displayImageUrl = nft.metadata.image;
-                     else if (nft.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) displayImageUrl = nft.url;
+                  // 3. Fallback to nft.metadata.image
+                  else if (nft.metadata?.image) {
+                    displayImageUrl = nft.metadata.image;
                   }
 
                   const explorerUrl = `https://testnet-explorer.multiversx.com/nfts/${nft.identifier}`;
