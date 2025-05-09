@@ -489,7 +489,7 @@ export default function Home() {
                      else if (nft.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) displayImageUrl = nft.url;
                   }
 
-                  const explorerUrl = `https://explorer.multiversx.com/nfts/${nft.identifier}`;
+                  const explorerUrl = `https://testnet-explorer.multiversx.com/nfts/${nft.identifier}`;
 
                   return (
                     <Card key={nft.identifier} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col group bg-card/90">
