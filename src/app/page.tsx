@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Copy, Search, AlertCircle, ImageIcon, Wallet, User } from 'lucide-react'; // Added Wallet, User icons
+import { Copy, Search, AlertCircle, ImageIcon, Wallet, User, Percent, Tag, Crown } from 'lucide-react'; // Added Wallet, User, Percent, Tag, Crown icons
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
@@ -481,16 +481,19 @@ export default function Home() {
                 {nfts.map((nft) => {
                   let displayImageUrl = '';
                   
-                  // 1. Prioritize nft.url if it's an image file
                   if (nft.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
                     displayImageUrl = nft.url;
                   } 
-                  // 2. Fallback to nft.media if nft.url wasn't a direct image or not present
                   else if (nft.media && nft.media.length > 0) {
                     const imageMedia = nft.media.find(m => m.fileType?.startsWith('image/'));
-                    displayImageUrl = imageMedia?.thumbnailUrl || imageMedia?.url || '';
+                    if (imageMedia?.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                        displayImageUrl = imageMedia.url;
+                    } else if (imageMedia?.thumbnailUrl?.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                        displayImageUrl = imageMedia.thumbnailUrl;
+                    } else if (imageMedia?.url) { // Fallback if no explicit image extension
+                        displayImageUrl = imageMedia.url;
+                    }
                   }
-                  // 3. Fallback to nft.metadata.image
                   else if (nft.metadata?.image) {
                     displayImageUrl = nft.metadata.image;
                   }
@@ -504,13 +507,12 @@ export default function Home() {
                           <Image
                             src={displayImageUrl}
                             alt={nft.name || nft.identifier}
-                            width={300} // Provide width and height for non-fill layouts
+                            width={300} 
                             height={300}
-                            style={{ objectFit: 'cover' }} // Use style for objectFit with width/height
-                            className="transition-transform duration-300 group-hover:scale-105"
+                            style={{ objectFit: 'cover' }} 
+                            className="transition-transform duration-300 group-hover:scale-105 w-full h-full"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              // Fallback to a generic placeholder image
                               target.srcset = ''; 
                               target.src = `https://picsum.photos/seed/${nft.identifier}/300/300`;
                               target.dataset.aiHint = "abstract digital";
@@ -522,21 +524,53 @@ export default function Home() {
                           </div>
                         )}
                       </div>
-                      <CardContent className="p-3 flex-grow flex flex-col justify-between space-y-2">
-                        <div>
-                          <h4 className="text-sm font-semibold mb-0.5 truncate" title={nft.name || nft.identifier}>
+                      <CardContent className="p-3 flex-grow flex flex-col justify-between space-y-1">
+                        <div className="space-y-0.5">
+                          <h4 className="text-sm font-semibold truncate" title={nft.name || nft.identifier}>
                             {nft.name || nft.identifier}
                           </h4>
                           {nft.collection && (
                             <p className="text-xs text-muted-foreground truncate" title={nft.collection}>
-                              Collection: {nft.collection}
+                              <Tag className="inline-block h-3 w-3 mr-1 align-middle" />{nft.collection}
                             </p>
                           )}
                           <p className="text-xs text-muted-foreground truncate" title={nft.identifier}>
-                            ID: {nft.identifier.length > 20 ? `${nft.identifier.substring(0,17)}...` : nft.identifier}
+                            ID: {nft.identifier.length > 20 ? `${nft.identifier.substring(0,10)}...${nft.identifier.substring(nft.identifier.length - 4)}` : nft.identifier}
                           </p>
+                          {nft.type && (
+                            <p className="text-xs text-muted-foreground truncate" title={nft.type}>
+                              Type: {nft.type}
+                            </p>
+                          )}
+                          {nft.creator && (
+                            <p className="text-xs text-muted-foreground truncate" title={nft.creator}>
+                              <Crown className="inline-block h-3 w-3 mr-1 align-middle" />
+                              {nft.creator.startsWith('erd1') && nft.creator.length === ADDRESS_LENGTH 
+                                ? `${nft.creator.substring(0,10)}...${nft.creator.substring(nft.creator.length - 4)}` 
+                                : nft.creator}
+                            </p>
+                          )}
+                          {nft.royalties !== undefined && nft.royalties > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              <Percent className="inline-block h-3 w-3 mr-1 align-middle" />{(nft.royalties / 100).toFixed(2)}%
+                            </p>
+                          )}
+                          
+                          {nft.metadata?.attributes && nft.metadata.attributes.length > 0 && (
+                            <div className="mt-1.5 pt-1.5 border-t border-border/50">
+                              <h5 className="text-xs font-medium mb-0.5 text-foreground">Attributs:</h5>
+                              <div className="space-y-0.5 max-h-20 overflow-y-auto pr-1 text-xs">
+                                {nft.metadata.attributes.map((attr, index) => (
+                                  <div key={index} className="flex justify-between items-baseline">
+                                    <span className="text-muted-foreground mr-1 whitespace-nowrap" title={attr.trait_type}>{attr.trait_type}:</span>
+                                    <span className="text-foreground font-medium text-right truncate" title={String(attr.value)}>{String(attr.value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <Button variant="link" size="sm" asChild className="mt-1 self-start p-0 h-auto text-xs">
+                        <Button variant="link" size="sm" asChild className="mt-auto self-start p-0 h-auto text-xs pt-1">
                           <a href={explorerUrl} target="_blank" rel="noopener noreferrer">
                             Voir sur l'explorateur
                           </a>
@@ -559,3 +593,4 @@ export default function Home() {
     </main>
   );
 }
+
