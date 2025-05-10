@@ -257,7 +257,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-12 md:p-24 bg-gradient-to-br from-red-500 via-purple-500 to-pink-500 overflow-hidden">
        <Image
          src="https://picsum.photos/seed/bgcat1/300/200"
          alt="Image de chat en arrière-plan 1"
@@ -449,9 +449,7 @@ export default function Home() {
         <Card className="w-full bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>NFTs du Compte</CardTitle>
-            <CardDescription>
-              {currentAddress ? `${currentAddress.substring(0, 10)}...` : "Aucune adresse sélectionnée."}
-            </CardDescription>
+            {/* Removed CardDescription that was displaying the currentAddress */}
           </CardHeader>
           <CardContent id="nft-section">
              {nftFetchError && !isLoadingNfts && (
