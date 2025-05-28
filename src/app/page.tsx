@@ -17,19 +17,19 @@ export default function HomePage() {
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
     setAutoQueryModeActive(true);
-    setShowVmQueryTool(true); // Ensure VmQueryForm is rendered to receive props
+    setShowVmQueryTool(true); // Ensure VmQueryForm is rendered to receive props for auto-query results
   };
 
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    // Optionally hide VmQueryTool again if it was only shown due to auto query
-    // For now, let user control its visibility via its own toggle if they opened it manually
+    // setShowVmQueryTool(false); // Optionally reset VM tool visibility, or let user control it
   };
 
   const handleInitialArgConsumed = () => {
     setHashForQuery(null);
     // autoQueryModeActive remains true here, so results-only view persists
+    // If we want to switch back to manual mode after results, setAutoQueryModeActive(false) here.
   };
 
   return (
@@ -67,14 +67,17 @@ export default function HomePage() {
         </Card>
 
         {autoQueryModeActive ? (
-          showVmQueryTool && ( // VmQueryForm must be mounted to process initialArg0
+          // In autoQueryMode, we render VmQueryForm directly if showVmQueryTool is true
+          // showVmQueryTool is set to true in handleHashCalculated to ensure VmQueryForm mounts
+          showVmQueryTool && ( 
             <VmQueryForm
               initialArg0={hashForQuery}
               onInitialArgConsumed={handleInitialArgConsumed}
-              isAutoMode={true}
+              isAutoMode={true} // Tells VmQueryForm to only show results/errors
             />
           )
         ) : (
+          // Manual mode: Display the "VM Query Tool" card, collapsible
           <Card className="shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center space-x-3">
@@ -92,15 +95,15 @@ export default function HomePage() {
                 <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
               </Button>
             </CardHeader>
-            {showVmQueryTool && (
+            {showVmQueryTool && ( // Content is hidden if showVmQueryTool is false
               <CardContent id="vm-query-tool-content">
                  <CardDescription className="mb-4 -mt-2">
                   Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
                 </CardDescription>
                 <VmQueryForm 
-                  initialArg0={hashForQuery} 
+                  initialArg0={hashForQuery} // Will be null here initially
                   onInitialArgConsumed={handleInitialArgConsumed}
-                  isAutoMode={false}
+                  isAutoMode={false} // Tells VmQueryForm to show full form
                 />
               </CardContent>
             )}
