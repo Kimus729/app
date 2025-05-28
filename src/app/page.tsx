@@ -10,20 +10,25 @@ import { DatabaseZap, Hash, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
-  const [showVmQueryTool, setShowVmQueryTool] = useState(false); // Hidden by default
+  const [showVmQueryTool, setShowVmQueryTool] = useState(false); // manual VM Query Tool card starts hidden
   const [hashForQuery, setHashForQuery] = useState<string | null>(null);
   const [autoQueryModeActive, setAutoQueryModeActive] = useState(false);
 
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
     setAutoQueryModeActive(true);
-    setShowVmQueryTool(true); // Ensure VmQueryForm is rendered to receive props for auto-query results
+    setShowVmQueryTool(true); // Ensure VmQueryForm (for results) is rendered
   };
 
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    // setShowVmQueryTool(false); // Optionally reset VM tool visibility, or let user control it
+    // showVmQueryTool remains true, allowing the manual card to appear if it was previously hidden
+    // If it was already true and visible, it stays visible.
+    // If the user manually hid it using its own toggle, it would be false, and would stay false.
+    // This means if user *manually* hid the VM tool, clearing file won't show it again unless hash is re-calculated.
+    // To make it appear after clearing: we must ensure showVmQueryTool is true or user can toggle it.
+    // Current logic: it will be true from handleHashCalculated.
   };
 
   const handleInitialArgConsumed = () => {
@@ -67,8 +72,8 @@ export default function HomePage() {
         </Card>
 
         {autoQueryModeActive ? (
-          // In autoQueryMode, we render VmQueryForm directly if showVmQueryTool is true
-          // showVmQueryTool is set to true in handleHashCalculated to ensure VmQueryForm mounts
+          // In autoQueryMode, VmQueryForm is rendered directly if showVmQueryTool is true
+          // (which is set in handleHashCalculated to display results)
           showVmQueryTool && ( 
             <VmQueryForm
               initialArg0={hashForQuery}
@@ -77,37 +82,42 @@ export default function HomePage() {
             />
           )
         ) : (
-          // Manual mode: Display the "VM Query Tool" card, collapsible
-          <Card className="shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-4">
-              <div className="flex items-center space-x-3">
-                <DatabaseZap className="h-8 w-8 text-primary" />
-                <CardTitle className="text-2xl">VM Query Tool</CardTitle>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowVmQueryTool(!showVmQueryTool)}
-                aria-expanded={showVmQueryTool}
-                aria-controls="vm-query-tool-content"
-              >
-                {showVmQueryTool ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
-              </Button>
-            </CardHeader>
-            {showVmQueryTool && ( // Content is hidden if showVmQueryTool is false
+          // Manual mode:
+          // The "VM Query Tool" card is only rendered if showVmQueryTool is true.
+          // showVmQueryTool is initially false. It becomes true after an auto-query cycle
+          // (hash calculated -> auto-query -> file cleared).
+          // Once visible, its own toggle button in the CardHeader controls its state.
+          showVmQueryTool && (
+            <Card className="shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="flex items-center space-x-3">
+                  <DatabaseZap className="h-8 w-8 text-primary" />
+                  <CardTitle className="text-2xl">VM Query Tool</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowVmQueryTool(!showVmQueryTool)}
+                  aria-expanded={showVmQueryTool}
+                  aria-controls="vm-query-tool-content"
+                >
+                  {showVmQueryTool ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
+                </Button>
+              </CardHeader>
+              {/* Content is rendered if the card is shown (showVmQueryTool is true) */}
               <CardContent id="vm-query-tool-content">
                  <CardDescription className="mb-4 -mt-2">
                   Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
                 </CardDescription>
                 <VmQueryForm 
-                  initialArg0={hashForQuery} // Will be null here initially
+                  initialArg0={null} // In manual mode, no initialArg from file hash
                   onInitialArgConsumed={handleInitialArgConsumed}
                   isAutoMode={false} // Tells VmQueryForm to show full form
                 />
               </CardContent>
-            )}
-          </Card>
+            </Card>
+          )
         )}
       </div>
       <footer className="w-full max-w-3xl mt-12 py-8 text-center text-sm text-muted-foreground">
