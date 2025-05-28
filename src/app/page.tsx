@@ -6,7 +6,7 @@ import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DatabaseZap, Hash, ChevronDown, ChevronUp, FunctionSquare } from 'lucide-react';
+import { DatabaseZap, Hash, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
@@ -15,20 +15,16 @@ export default function HomePage() {
 
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
-    setShowVmQueryTool(true); // Always show the VM query tool when a hash is calculated
+    // setShowVmQueryTool(true); // Keep it hidden as per previous request
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-background">
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
-        <div className="flex justify-center items-center space-x-3 mb-2">
-          <FunctionSquare className="h-12 w-12 text-primary" />
-        </div>
-        <h1 className="text-4xl font-bold text-primary">MultiversX Dev Tools</h1>
-        <p className="text-md text-muted-foreground">A collection of useful tools for MultiversX development.</p>
+        <h1 className="text-4xl font-bold text-primary">VOSDECISIONS</h1>
       </header>
       
-      <div className="w-full max-w-3xl space-y-8">
+      <div className="w-full max-w-3xl space-y-8 flex-grow">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
@@ -83,6 +79,9 @@ export default function HomePage() {
           )}
         </Card>
       </div>
+      <footer className="w-full max-w-3xl mt-12 py-8 text-center text-sm text-muted-foreground">
+        <p>&copy; VOSDECISIONS 2025</p>
+      </footer>
     </div>
   );
 }
