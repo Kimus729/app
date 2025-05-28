@@ -361,7 +361,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         <div className="p-6 pt-0"> {/* Use a div instead of CardFooter if CardFooter implies form context */}
           <Card className="w-full mt-2 shadow-md"> {/* Reduced margin if inputs are hidden */}
             <CardHeader>
-              <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
+              <CardTitle className="text-xl text-accent">Réponse blockchain</CardTitle>
             </CardHeader>
             <CardContent>
               {renderDecodedReturnData()}
