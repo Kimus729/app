@@ -90,6 +90,72 @@ export default function VmQueryForm() {
     }
   };
 
+  const renderDecodedReturnData = () => {
+    if (!result || !result.data || !result.data.data || !Array.isArray(result.data.data.returnData)) {
+      return null;
+    }
+
+    const returnData = result.data.data.returnData;
+    if (returnData.length === 0) {
+      return <p className="text-sm text-muted-foreground">Aucun élément de retour à afficher.</p>;
+    }
+
+    const chunkSize = 7;
+    const groupedData: string[][] = [];
+    for (let i = 0; i < returnData.length; i += chunkSize) {
+      groupedData.push(returnData.slice(i, i + chunkSize));
+    }
+
+    return groupedData.map((group, groupIndex) => (
+      <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
+        <h4 className="text-md font-semibold mb-3 text-accent-foreground bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
+          Group {groupIndex + 1} (Items {groupIndex * chunkSize + 1} - {Math.min((groupIndex + 1) * chunkSize, returnData.length)})
+        </h4>
+        <ul className="space-y-3">
+          {group.map((item: string, itemIndexInGroup: number) => {
+            const originalIndex = groupIndex * chunkSize + itemIndexInGroup;
+            let displayValue = '';
+            let hasError = false;
+            const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
+
+            try {
+              const binaryString = atob(item);
+              const byteArray = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                byteArray[i] = binaryString.charCodeAt(i);
+              }
+              
+              try {
+                displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+              } catch (utfError) {
+                displayValue = Array.from(byteArray).map(b => b.toString(16).padStart(2, '0')).join('');
+                if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
+                displayValue = `[Hex]: ${displayValue}`;
+                hasError = true; 
+              }
+            } catch (e) {
+              displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
+              hasError = true;
+            }
+
+            return (
+              <li 
+                key={originalIndex} 
+                className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
+              >
+                <span className="block text-xs font-medium text-muted-foreground mb-1">
+                  Élément {originalIndex + 1} (Original Base64: {originalItemPreview})
+                </span>
+                <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ));
+  };
+
+
   return (
     <Card className="w-full shadow-xl">
       <CardHeader>
@@ -203,49 +269,7 @@ export default function VmQueryForm() {
                     <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {result.data.data.returnData.length > 0 ? (
-                      <ul className="space-y-3">
-                        {result.data.data.returnData.map((item: string, index: number) => {
-                          let displayValue = '';
-                          let hasError = false;
-                          const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
-
-                          try {
-                            const binaryString = atob(item);
-                            const byteArray = new Uint8Array(binaryString.length);
-                            for (let i = 0; i < binaryString.length; i++) {
-                              byteArray[i] = binaryString.charCodeAt(i);
-                            }
-                            
-                            try {
-                              displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-                            } catch (utfError) {
-                              displayValue = Array.from(byteArray).map(b => b.toString(16).padStart(2, '0')).join('');
-                              if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
-                              displayValue = `[Hex]: ${displayValue}`;
-                              hasError = true; 
-                            }
-                          } catch (e) {
-                            displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
-                            hasError = true;
-                          }
-
-                          return (
-                            <li 
-                              key={index} 
-                              className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
-                            >
-                              <span className="block text-xs font-medium text-muted-foreground mb-1">
-                                Élément {index + 1} (Original Base64: {originalItemPreview})
-                              </span>
-                              <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Aucun élément de retour à afficher.</p>
-                    )}
+                    {renderDecodedReturnData()}
                   </CardContent>
                 </Card>
               )}
