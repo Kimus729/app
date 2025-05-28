@@ -5,9 +5,9 @@ import { useState, useEffect, useCallback, FormEvent, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'; // CardDescription removed as it's not used here
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react'; // ChevronDown, ChevronUp removed
+import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 
 interface QueryResult {
   data?: any;
@@ -205,17 +205,17 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   }
 
                   if (byteArray.length === 0) {
-                    displayValue = "[Numeric]: 0 (empty data)";
+                    displayValue = "0 (empty data)";
                   } else {
                     let hexString = "";
                     for (let i = 0; i < byteArray.length; i++) {
                       hexString += byteArray[i].toString(16).padStart(2, '0');
                     }
                     const numericValue = BigInt('0x' + (hexString || '0')); 
-                    displayValue = `[Numeric]: ${numericValue.toString()}`;
+                    displayValue = numericValue.toString();
                   }
                 } catch (e) {
-                  displayValue = `Numeric decoding error (Invalid Base64 or other): ${e instanceof Error ? e.message : String(e)}`;
+                  displayValue = `Numeric decoding error: ${e instanceof Error ? e.message : String(e)}`;
                   hasError = true;
                 }
               } else {
@@ -233,9 +233,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                       for(let i = 0; i < byteArray.length; i++) {
                         hex += byteArray[i].toString(16).padStart(2, '0');
                       }
-                      displayValue = `[Hex]: ${hex}`;
+                      displayValue = hex;
                     } else if (displayValue.length === 0 && byteArray.length === 0) {
-                      displayValue = "[UTF-8]: (empty)";
+                      displayValue = "(empty)";
                     }
                   } catch (utfError) {
                     let hex = "";
@@ -243,7 +243,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                       hex += byteArray[i].toString(16).padStart(2, '0');
                     }
                     if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
-                    displayValue = `[Hex]: ${hex || '(empty)'}`;
+                    displayValue = hex || '(empty)';
                   }
                 } catch (e) {
                   displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
@@ -273,87 +273,87 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
   return (
     <>
       {!isAutoMode && (
-        <form onSubmit={handleSubmit}>
-            <div className="space-y-6"> {/* Replaces CardContent for padding form elements */}
-              <div className="space-y-2">
-                <Label htmlFor="scAddress" className="font-semibold">Smart Contract Address</Label>
-                <Input
-                  id="scAddress"
-                  placeholder="erd1..."
-                  value={scAddress}
-                  onChange={(e) => setScAddress(e.target.value)}
-                  required
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="funcName" className="font-semibold">Function Name</Label>
-                <Input
-                  id="funcName"
-                  placeholder="getFunction"
-                  value={funcName}
-                  onChange={(e) => setFuncName(e.target.value)}
-                  required
-                  className="text-sm"
-                />
-              </div>
-              
-              <div className="space-y-3">
-                <Label className="font-semibold">Arguments</Label>
-                {args.map((arg, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+         <div className="space-y-6">
+            <form onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                    <Label htmlFor="scAddress" className="font-semibold">Smart Contract Address</Label>
                     <Input
-                      type="text"
-                      placeholder={`Argument ${index + 1}`}
-                      value={arg}
-                      onChange={(e) => handleArgChange(index, e.target.value)}
-                      className="text-sm flex-grow"
-                      aria-label={`Argument ${index + 1}`}
+                    id="scAddress"
+                    placeholder="erd1..."
+                    value={scAddress}
+                    onChange={(e) => setScAddress(e.target.value)}
+                    required
+                    className="text-sm"
                     />
-                    { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeArgField(index)}
-                        aria-label={`Remove argument ${index + 1}`}
-                        className="text-destructive hover:text-destructive/90"
-                      >
-                        <XCircle className="h-5 w-5" />
-                      </Button>
-                    ) : (
-                      <div className="w-10 h-10"></div> 
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addArgField}
-                  className="text-sm border-dashed hover:bg-accent/10 hover:text-accent"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Argument
-                </Button>
-              </div>
-            </div>
-            <CardFooter className="flex flex-col items-start space-y-4 pt-6"> {/* Added pt-6 to CardFooter as it's no longer inside a CardContent */}
-              <Button 
-                type="submit" 
-                disabled={isLoading} 
-                className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-accent"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Querying...
-                  </>
-                ) : (
-                  'Submit Query'
-                )}
-              </Button>
-            </CardFooter>
-          </form>
+                </div>
+                <div className="space-y-2 mt-4">
+                    <Label htmlFor="funcName" className="font-semibold">Function Name</Label>
+                    <Input
+                    id="funcName"
+                    placeholder="getFunction"
+                    value={funcName}
+                    onChange={(e) => setFuncName(e.target.value)}
+                    required
+                    className="text-sm"
+                    />
+                </div>
+                
+                <div className="space-y-3 mt-4">
+                    <Label className="font-semibold">Arguments</Label>
+                    {args.map((arg, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                        <Input
+                        type="text"
+                        placeholder={`Argument ${index + 1}`}
+                        value={arg}
+                        onChange={(e) => handleArgChange(index, e.target.value)}
+                        className="text-sm flex-grow"
+                        aria-label={`Argument ${index + 1}`}
+                        />
+                        { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeArgField(index)}
+                            aria-label={`Remove argument ${index + 1}`}
+                            className="text-destructive hover:text-destructive/90"
+                        >
+                            <XCircle className="h-5 w-5" />
+                        </Button>
+                        ) : (
+                        <div className="w-10 h-10"></div> 
+                        )}
+                    </div>
+                    ))}
+                    <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addArgField}
+                    className="text-sm border-dashed hover:bg-accent/10 hover:text-accent mt-2"
+                    >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Argument
+                    </Button>
+                </div>
+                <CardFooter className="flex flex-col items-start space-y-4 pt-6 px-0 pb-0">
+                    <Button 
+                        type="submit" 
+                        disabled={isLoading} 
+                        className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-accent"
+                    >
+                        {isLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Querying...
+                        </>
+                        ) : (
+                        'Submit Query'
+                        )}
+                    </Button>
+                </CardFooter>
+            </form>
+        </div>
       )}
 
       { (isLoading && isAutoMode) && 
@@ -364,7 +364,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       }
       {error && (
         <div className="p-6 pt-0">
-          <Alert variant="destructive" className="w-full">
+          <Alert variant="destructive" className="w-full mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -373,7 +373,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       )}
 
       {result && result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
-        <div className="p-6 pt-0"> 
+        <div className="pt-0"> 
           <Card className="w-full mt-2 shadow-md">
             <CardHeader>
               <CardTitle className="text-xl text-accent">Blockchain Response</CardTitle>
@@ -392,5 +392,3 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </>
   );
 }
-
-    
