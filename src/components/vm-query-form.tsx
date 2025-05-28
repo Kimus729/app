@@ -143,7 +143,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
     const returnData = result.data.data.returnData;
     if (returnData.length === 0) {
-      return <p className="text-sm text-muted-foreground">Aucun élément de retour à afficher.</p>;
+      return <p className="text-sm text-muted-foreground">No return items to display.</p>;
     }
 
     const chunkSize = 7;
@@ -193,7 +193,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               const originalIndex = groupIndex * chunkSize + itemIndexInGroup;
               let displayValue = '';
               let hasError = false;
-              const itemLabel = itemLabels[itemIndexInGroup] || `Élément ${itemIndexInGroup + 1}`;
+              const itemLabel = itemLabels[itemIndexInGroup] || `Item ${itemIndexInGroup + 1}`;
 
 
               if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) { // 1st, 3rd, 7th
@@ -215,7 +215,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     displayValue = `[Numeric]: ${numericValue.toString()}`;
                   }
                 } catch (e) {
-                  displayValue = `Erreur de décodage numérique (Base64 invalide ou autre): ${e instanceof Error ? e.message : String(e)}`;
+                  displayValue = `Numeric decoding error (Invalid Base64 or other): ${e instanceof Error ? e.message : String(e)}`;
                   hasError = true;
                 }
               } else {
@@ -246,7 +246,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     displayValue = `[Hex]: ${hex || '(empty)'}`;
                   }
                 } catch (e) {
-                  displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
+                  displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
                   hasError = true;
                 }
               }
@@ -379,7 +379,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         <div className="p-6 pt-0"> 
           <Card className="w-full mt-2 shadow-md">
             <CardHeader>
-              <CardTitle className="text-xl text-accent">Réponse blockchain</CardTitle>
+              <CardTitle className="text-xl text-accent">Blockchain Response</CardTitle>
             </CardHeader>
             <CardContent>
               {renderDecodedReturnData()}
