@@ -38,9 +38,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
   
   useEffect(() => {
     setError(null);
-    if (isAutoMode) { // In auto mode, clear previous results if component re-renders without new initialArg0
+    if (isAutoMode) { 
         if (!initialArg0) {
-            // setResult(null); // This might be too aggressive if we want results to persist
+            // setResult(null); // Might clear results too aggressively
         }
     }
   }, [scAddress, funcName, args, isAutoMode, initialArg0]);
@@ -78,13 +78,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         setIsLoading(false);
         return;
     }
-     if (payload.args.length === 0 && pArgs.some(arg => arg.trim() === "")) {
-        // If original pArgs had an empty string that was filtered out,
-        // and this caused payload.args to be empty, treat it as intentional empty arg
-        // This case is tricky. For now, if all args are empty strings, they become an empty array.
-        // If the user intended to send an empty string, they should ensure it's the only arg or handle it.
-    }
-
 
     try {
       const response = await fetch('https://devnet-gateway.multiversx.com/vm-values/query', {
@@ -100,7 +93,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
       if (!response.ok || responseData.error) {
         setError(responseData.error || `API Error: ${responseData.data?.returnMessage || responseData.returnMessage || response.statusText}`);
-        setResult(responseData); // Still set result to show partial error data if available
+        setResult(responseData);
       } else {
         setResult(responseData);
       }
@@ -121,12 +114,11 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         } else {
              newArgsArray[0] = initialArg0; 
         }
-        // Ensure only non-empty strings or the first one if it's the only one (even if empty initially)
         const finalArgs = newArgsArray.filter((arg, index) => arg.trim() !== '' || index === 0 || newArgsArray.length === 1);
         setArgs(finalArgs.length > 0 ? finalArgs : ['']);
 
         if (scAddress.trim() && funcName.trim()) {
-            performQuery(scAddress, funcName, finalArgs.map(a => a.trim())); // Trim args before sending
+            performQuery(scAddress, funcName, finalArgs.map(a => a.trim()));
         } else {
              setError("Cannot auto-query: Smart Contract Address or Function Name is missing. Please fill them and submit manually or re-upload the file.");
         }
@@ -136,8 +128,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArg0]); // Removed scAddress, funcName, performQuery to avoid re-triggering unless initialArg0 changes.
-                     // performQuery is memoized. scAddress and funcName are fixed for auto-query.
+  }, [initialArg0]); 
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -161,88 +152,118 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       groupedData.push(returnData.slice(i, i + chunkSize));
     }
 
-    return groupedData.map((group, groupIndex) => (
-      <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
-        <h4 className="text-md font-semibold mb-3 text-accent-foreground bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
-          Group {groupIndex + 1} (Items {groupIndex * chunkSize + 1} - {Math.min((groupIndex + 1) * chunkSize, returnData.length)})
-        </h4>
-        <ul className="space-y-3">
-          {group.map((item: string, itemIndexInGroup: number) => {
-            const originalIndex = groupIndex * chunkSize + itemIndexInGroup;
-            let displayValue = '';
-            let hasError = false;
-            const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
+    return groupedData.map((group, groupIndex) => {
+      let groupTitle = `Group ${groupIndex + 1} (Items ${groupIndex * chunkSize + 1} - ${Math.min((groupIndex + 1) * chunkSize, returnData.length)})`;
 
-            if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) { // 1st, 3rd, 7th
-              try {
-                const binaryString = atob(item);
-                const byteArray = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  byteArray[i] = binaryString.charCodeAt(i);
-                }
-
-                if (byteArray.length === 0) {
-                  displayValue = "[Numeric]: 0 (empty data)";
-                } else {
-                  let hexString = "";
-                  for (let i = 0; i < byteArray.length; i++) {
-                    hexString += byteArray[i].toString(16).padStart(2, '0');
-                  }
-                  const numericValue = BigInt('0x' + (hexString || '0')); 
-                  displayValue = `[Numeric]: ${numericValue.toString()}`;
-                }
-              } catch (e) {
-                displayValue = `Erreur de décodage numérique (Base64 invalide ou autre): ${e instanceof Error ? e.message : String(e)}`;
-                hasError = true;
+      if (group && group.length > 1 && group[1]) {
+        const secondItemBase64 = group[1];
+        try {
+          const binaryString = atob(secondItemBase64);
+          const byteArray = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            byteArray[i] = binaryString.charCodeAt(i);
+          }
+          
+          let decodedText = '';
+          try {
+            decodedText = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+            if (decodedText.trim()) {
+              groupTitle = decodedText.trim();
+              if (groupTitle.length > 60) {
+                groupTitle = groupTitle.substring(0, 57) + "...";
               }
-            } else {
-              try {
-                const binaryString = atob(item);
-                const byteArray = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  byteArray[i] = binaryString.charCodeAt(i);
-                }
-                
+            }
+          } catch (utfError) {
+            // Not valid UTF-8, default title remains.
+          }
+        } catch (base64Error) {
+          // Not valid Base64, default title remains.
+        }
+      }
+
+      return (
+        <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
+          <h4 className="text-md font-semibold mb-3 text-accent-foreground bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
+            {groupTitle}
+          </h4>
+          <ul className="space-y-3">
+            {group.map((item: string, itemIndexInGroup: number) => {
+              const originalIndex = groupIndex * chunkSize + itemIndexInGroup;
+              let displayValue = '';
+              let hasError = false;
+              const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
+
+              if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) { // 1st, 3rd, 7th
                 try {
-                  displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-                  if (displayValue.length === 0 && byteArray.length > 0) { 
-                     let hex = "";
+                  const binaryString = atob(item);
+                  const byteArray = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                    byteArray[i] = binaryString.charCodeAt(i);
+                  }
+
+                  if (byteArray.length === 0) {
+                    displayValue = "[Numeric]: 0 (empty data)";
+                  } else {
+                    let hexString = "";
+                    for (let i = 0; i < byteArray.length; i++) {
+                      hexString += byteArray[i].toString(16).padStart(2, '0');
+                    }
+                    const numericValue = BigInt('0x' + (hexString || '0')); 
+                    displayValue = `[Numeric]: ${numericValue.toString()}`;
+                  }
+                } catch (e) {
+                  displayValue = `Erreur de décodage numérique (Base64 invalide ou autre): ${e instanceof Error ? e.message : String(e)}`;
+                  hasError = true;
+                }
+              } else {
+                try {
+                  const binaryString = atob(item);
+                  const byteArray = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                    byteArray[i] = binaryString.charCodeAt(i);
+                  }
+                  
+                  try {
+                    displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+                    if (displayValue.length === 0 && byteArray.length > 0) { 
+                       let hex = "";
+                      for(let i = 0; i < byteArray.length; i++) {
+                        hex += byteArray[i].toString(16).padStart(2, '0');
+                      }
+                      displayValue = `[Hex]: ${hex}`;
+                    } else if (displayValue.length === 0 && byteArray.length === 0) {
+                      displayValue = "[UTF-8]: (empty)";
+                    }
+                  } catch (utfError) {
+                    let hex = "";
                     for(let i = 0; i < byteArray.length; i++) {
                       hex += byteArray[i].toString(16).padStart(2, '0');
                     }
-                    displayValue = `[Hex]: ${hex}`;
-                  } else if (displayValue.length === 0 && byteArray.length === 0) {
-                    displayValue = "[UTF-8]: (empty)";
+                    if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
+                    displayValue = `[Hex]: ${hex || '(empty)'}`;
                   }
-                } catch (utfError) {
-                  let hex = "";
-                  for(let i = 0; i < byteArray.length; i++) {
-                    hex += byteArray[i].toString(16).padStart(2, '0');
-                  }
-                  if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
-                  displayValue = `[Hex]: ${hex || '(empty)'}`;
+                } catch (e) {
+                  displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
+                  hasError = true;
                 }
-              } catch (e) {
-                displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
-                hasError = true;
               }
-            }
 
-            return (
-              <li 
-                key={originalIndex} 
-                className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
-              >
-                <span className="block text-xs font-medium text-muted-foreground mb-1">
-                  Élément {originalIndex + 1} (Original Base64: {originalItemPreview})
-                </span>
-                <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    ));
+              return (
+                <li 
+                  key={originalIndex} 
+                  className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
+                >
+                  <span className="block text-xs font-medium text-muted-foreground mb-1">
+                    Élément {originalIndex + 1} (Original Base64: {originalItemPreview})
+                  </span>
+                  <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    });
   };
 
 
@@ -340,7 +361,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         </>
       )}
 
-      {/* Result and Error display section - always potentially visible if data exists */}
       { (isLoading && isAutoMode) && 
         <div className="p-6 flex items-center justify-center">
             <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
@@ -358,8 +378,8 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       )}
 
       {result && result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
-        <div className="p-6 pt-0"> {/* Use a div instead of CardFooter if CardFooter implies form context */}
-          <Card className="w-full mt-2 shadow-md"> {/* Reduced margin if inputs are hidden */}
+        <div className="p-6 pt-0"> 
+          <Card className="w-full mt-2 shadow-md">
             <CardHeader>
               <CardTitle className="text-xl text-accent">Réponse blockchain</CardTitle>
             </CardHeader>
@@ -378,3 +398,4 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </Card>
   );
 }
+
