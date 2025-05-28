@@ -30,7 +30,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // const [showRawJson, setShowRawJson] = useState(true); // Removed for raw JSON removal
 
   const argsRef = useRef(args);
   useEffect(() => {
@@ -103,7 +102,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       setError(e.message || 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);
-      // setShowRawJson(false); // Hide raw JSON after query if it were still present
     }
   }, []);
 
@@ -159,7 +157,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     return groupedData.map((group, groupIndex) => {
       let groupTitle = `Group ${groupIndex + 1} (Items ${groupIndex * chunkSize + 1} - ${Math.min((groupIndex + 1) * chunkSize, returnData.length)})`;
 
-      if (group && group.length > 1 && group[1]) { // Second item for group title
+      if (group && group.length > 1 && group[1]) { 
         const secondItemBase64 = group[1];
         try {
           const binaryString = atob(secondItemBase64);
@@ -195,7 +193,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               const originalIndex = groupIndex * chunkSize + itemIndexInGroup;
               let displayValue = '';
               let hasError = false;
-              const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
               const itemLabel = itemLabels[itemIndexInGroup] || `Élément ${itemIndexInGroup + 1}`;
 
 
@@ -260,7 +257,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
                 >
                   <span className="block text-xs font-medium text-muted-foreground mb-1">
-                    {itemLabel} (Original Base64: {originalItemPreview})
+                    {itemLabel}
                   </span>
                   <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
                 </li>
