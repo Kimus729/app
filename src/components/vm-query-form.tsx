@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, FormEvent, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -16,15 +16,26 @@ interface QueryResult {
   returnMessage?: string;
 }
 
-export default function VmQueryForm() {
+interface VmQueryFormProps {
+  initialArg0?: string | null;
+  onInitialArgConsumed?: () => void;
+}
+
+export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQueryFormProps) {
   const [scAddress, setScAddress] = useState('erd1qqqqqqqqqqqqqpgq209g5ct99dcyjdxetdykgy92yqf0cnxf0qesc2aw9w');
   const [funcName, setFuncName] = useState('getPrintInfoFromHash');
-  const [args, setArgs] = useState<string[]>(['3486f3dda9ffec7a8e416e00c2634f02e798dab3cf728cf5214bc8f7e4ca69a5']);
+  const [args, setArgs] = useState<string[]>(['']); // Default to one empty arg field for manual input
   
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showRawJson, setShowRawJson] = useState(true);
+  const [showRawJson, setShowRawJson] = useState(false); // Hidden by default after query
+
+  // Ref to hold the latest args to avoid stale closures in useEffect
+  const argsRef = useRef(args);
+  useEffect(() => {
+    argsRef.current = args;
+  }, [args]);
   
   useEffect(() => {
     setError(null);
@@ -45,25 +56,24 @@ export default function VmQueryForm() {
     setArgs(newArgs.length > 0 ? newArgs : ['']); 
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const performQuery = useCallback(async (pScAddress: string, pFuncName: string, pArgs: string[]) => {
     setIsLoading(true);
     setError(null);
     setResult(null);
-    // Note: showRawJson state is NOT reset here to persist user's choice across queries
-    // until the query finishes, then it will be set to false.
+    // setShowRawJson is handled in finally block
 
-    const processedArgs = args.map(arg => arg.trim()).filter(arg => arg !== "");
+    const processedArgs = pArgs.map(arg => arg.trim()).filter(arg => arg !== "");
 
     const payload = {
-      scAddress: scAddress.trim(),
-      funcName: funcName.trim(),
+      scAddress: pScAddress.trim(),
+      funcName: pFuncName.trim(),
       args: processedArgs,
     };
 
     if (!payload.scAddress || !payload.funcName) {
         setError("Smart Contract Address and Function Name are required.");
         setIsLoading(false);
+        setShowRawJson(false); // Ensure it's hidden on early exit
         return;
     }
 
@@ -92,6 +102,40 @@ export default function VmQueryForm() {
       setIsLoading(false);
       setShowRawJson(false); // Hide raw JSON by default after query completes
     }
+  }, [/* No dependencies on state setters needed for useCallback if they are stable */]);
+
+
+  useEffect(() => {
+    if (initialArg0 && initialArg0.trim() !== "") {
+        const newArgsArray = [...argsRef.current]; // Use ref to get latest args
+        if (newArgsArray.length === 0 || (newArgsArray.length === 1 && newArgsArray[0] === '')) {
+            newArgsArray[0] = initialArg0; // If empty or just one empty string, set it
+        } else {
+             newArgsArray[0] = initialArg0; // Otherwise, replace the first element
+        }
+        // If there was only one empty string and now it's filled, make sure it's not duplicated empty
+        const finalArgs = newArgsArray.filter((arg, index) => arg !== '' || index === 0 || newArgsArray.length === 1);
+        setArgs(finalArgs.length > 0 ? finalArgs : ['']); // Update UI state
+
+        if (scAddress.trim() && funcName.trim()) {
+            performQuery(scAddress, funcName, finalArgs);
+        } else {
+             setError("Cannot auto-query: Smart Contract Address or Function Name is missing. Please fill them and submit manually or re-upload the file.");
+        }
+
+        if (onInitialArgConsumed) {
+            onInitialArgConsumed();
+        }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialArg0, scAddress, funcName, performQuery, onInitialArgConsumed]);
+  // Note: argsRef.current is used to avoid adding `args` to deps here, which could cause loops.
+  // `performQuery` and `onInitialArgConsumed` are stable due to `useCallback` or being props.
+
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await performQuery(scAddress, funcName, args);
   };
 
   const renderDecodedReturnData = () => {
@@ -122,9 +166,7 @@ export default function VmQueryForm() {
             let hasError = false;
             const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
 
-            // Check if the item is the 1st (index 0), 3rd (index 2), or 7th (index 6) in the current group
-            if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) {
-              // Numeric decoding logic
+            if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) { // 1st, 3rd, 7th
               try {
                 const binaryString = atob(item);
                 const byteArray = new Uint8Array(binaryString.length);
@@ -133,17 +175,13 @@ export default function VmQueryForm() {
                 }
 
                 if (byteArray.length === 0) {
-                  displayValue = "[Numeric]: (empty)";
+                  displayValue = "[Numeric]: 0 (empty data)";
                 } else {
                   let hexString = "";
                   for (let i = 0; i < byteArray.length; i++) {
                     hexString += byteArray[i].toString(16).padStart(2, '0');
                   }
-                  // Handle case where byteArray might be all zeros but not empty
-                  if (hexString === "" && byteArray.length > 0) hexString = "0".repeat(byteArray.length * 2);
-                  else if (hexString === "") hexString = "0"; // For truly empty valid base64 resulting in empty byte array
-                  
-                  const numericValue = BigInt('0x' + hexString);
+                  const numericValue = BigInt('0x' + (hexString || '0')); // Default to '0' if hexString is empty
                   displayValue = `[Numeric]: ${numericValue.toString()}`;
                 }
               } catch (e) {
@@ -151,7 +189,6 @@ export default function VmQueryForm() {
                 hasError = true;
               }
             } else {
-              // Existing UTF-8/Hex decoding logic
               try {
                 const binaryString = atob(item);
                 const byteArray = new Uint8Array(binaryString.length);
@@ -161,14 +198,22 @@ export default function VmQueryForm() {
                 
                 try {
                   displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+                  if (displayValue.length === 0 && byteArray.length > 0) { // Handle empty string from non-empty bytes
+                     let hex = "";
+                    for(let i = 0; i < byteArray.length; i++) {
+                      hex += byteArray[i].toString(16).padStart(2, '0');
+                    }
+                    displayValue = `[Hex]: ${hex}`;
+                  } else if (displayValue.length === 0 && byteArray.length === 0) {
+                    displayValue = "[UTF-8]: (empty)";
+                  }
                 } catch (utfError) {
                   let hex = "";
                   for(let i = 0; i < byteArray.length; i++) {
                     hex += byteArray[i].toString(16).padStart(2, '0');
                   }
-                  displayValue = hex;
                   if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
-                  displayValue = `[Hex]: ${displayValue}`;
+                  displayValue = `[Hex]: ${hex || '(empty)'}`;
                 }
               } catch (e) {
                 displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
@@ -343,7 +388,3 @@ export default function VmQueryForm() {
     </Card>
   );
 }
-    
-
-    
-

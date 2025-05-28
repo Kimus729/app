@@ -9,7 +9,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UploadCloud, FileText, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function FileHashCalculator() {
+interface FileHashCalculatorProps {
+  onHashCalculated?: (hash: string) => void;
+}
+
+export default function FileHashCalculator({ onHashCalculated }: FileHashCalculatorProps) {
   const [file, setFile] = useState<File | null>(null);
   const [hash, setHash] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +42,9 @@ export default function FileHashCalculator() {
     try {
       const calculatedHash = await calculateSHA256(selectedFile);
       setHash(calculatedHash);
+      if (onHashCalculated) {
+        onHashCalculated(calculatedHash);
+      }
     } catch (e: any) {
       console.error("Hashing Error:", e);
       setError(e.message || 'An unexpected error occurred during hashing.');
@@ -70,7 +77,7 @@ export default function FileHashCalculator() {
       await processFile(droppedFile);
       event.dataTransfer.clearData();
     }
-  }, []);
+  }, [processFile]);
 
   const handleFileInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -96,7 +103,7 @@ export default function FileHashCalculator() {
       <CardHeader>
         <CardTitle className="text-2xl">File SHA256 Hash Calculator</CardTitle>
         <CardDescription>
-          Upload a file to calculate its SHA256 hash locally in your browser. No data is sent to any server.
+          Upload a file to calculate its SHA256 hash locally. The hash can then be used to query the VM.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
