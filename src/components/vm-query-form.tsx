@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -24,7 +25,6 @@ export default function VmQueryForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Effect to clear error when inputs change, to avoid stale error messages
   useEffect(() => {
     setError(null);
   }, [scAddress, funcName, args]);
@@ -41,7 +41,6 @@ export default function VmQueryForm() {
 
   const removeArgField = (index: number) => {
     const newArgs = args.filter((_, i) => i !== index);
-    // Ensure at least one argument field remains
     setArgs(newArgs.length > 0 ? newArgs : ['']); 
   };
 
@@ -51,7 +50,6 @@ export default function VmQueryForm() {
     setError(null);
     setResult(null);
 
-    // Filter out empty or whitespace-only arguments before sending
     const processedArgs = args.map(arg => arg.trim()).filter(arg => arg !== "");
 
     const payload = {
@@ -79,8 +77,8 @@ export default function VmQueryForm() {
       const responseData: QueryResult = await response.json();
 
       if (!response.ok || responseData.error) {
-        setError(responseData.error || `API Error: ${responseData.returnMessage || response.statusText}`);
-        setResult(responseData); // Still set result to show partial error info from API
+        setError(responseData.error || `API Error: ${responseData.data?.returnMessage || responseData.returnMessage || response.statusText}`);
+        setResult(responseData);
       } else {
         setResult(responseData);
       }
@@ -137,7 +135,7 @@ export default function VmQueryForm() {
                   className="text-sm flex-grow"
                   aria-label={`Argument ${index + 1}`}
                 />
-                { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? ( // Show remove if more than one arg, or if it's the single arg and it's not empty (to allow clearing the first one)
+                { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? (
                   <Button
                     type="button"
                     variant="ghost"
@@ -149,7 +147,7 @@ export default function VmQueryForm() {
                     <XCircle className="h-5 w-5" />
                   </Button>
                 ) : (
-                  <div className="w-10 h-10"></div> // Placeholder to keep alignment if remove button is hidden
+                  <div className="w-10 h-10"></div> 
                 )}
               </div>
             ))}
@@ -189,14 +187,69 @@ export default function VmQueryForm() {
           )}
 
           {result && (
-            <div className="w-full pt-4 mt-4 border-t">
-              <h3 className="text-lg font-semibold mb-2 text-primary">Query Result:</h3>
-              <div className="bg-muted/50 p-4 rounded-md shadow">
-                <pre className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-96">
-                  {JSON.stringify(result, null, 2)}
-                </pre>
+            <>
+              <div className="w-full pt-4 mt-4 border-t">
+                <h3 className="text-lg font-semibold mb-2 text-primary">Query Result (Raw JSON):</h3>
+                <div className="bg-muted/50 p-4 rounded-md shadow">
+                  <pre className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-96">
+                    {JSON.stringify(result, null, 2)}
+                  </pre>
+                </div>
               </div>
-            </div>
+
+              {result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
+                <Card className="w-full mt-6 shadow-md">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {result.data.data.returnData.length > 0 ? (
+                      <ul className="space-y-3">
+                        {result.data.data.returnData.map((item: string, index: number) => {
+                          let displayValue = '';
+                          let hasError = false;
+                          const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
+
+                          try {
+                            const binaryString = atob(item);
+                            const byteArray = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) {
+                              byteArray[i] = binaryString.charCodeAt(i);
+                            }
+                            
+                            try {
+                              displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+                            } catch (utfError) {
+                              displayValue = Array.from(byteArray).map(b => b.toString(16).padStart(2, '0')).join('');
+                              if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
+                              displayValue = `[Hex]: ${displayValue}`;
+                              hasError = true; 
+                            }
+                          } catch (e) {
+                            displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
+                            hasError = true;
+                          }
+
+                          return (
+                            <li 
+                              key={index} 
+                              className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
+                            >
+                              <span className="block text-xs font-medium text-muted-foreground mb-1">
+                                Élément {index + 1} (Original Base64: {originalItemPreview})
+                              </span>
+                              <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Aucun élément de retour à afficher.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
         </CardFooter>
       </form>
