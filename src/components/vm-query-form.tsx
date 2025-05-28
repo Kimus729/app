@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { PlusCircle, XCircle, Loader2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface QueryResult {
   data?: any;
@@ -24,6 +24,7 @@ export default function VmQueryForm() {
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRawJson, setShowRawJson] = useState(true);
   
   useEffect(() => {
     setError(null);
@@ -49,6 +50,7 @@ export default function VmQueryForm() {
     setIsLoading(true);
     setError(null);
     setResult(null);
+    setShowRawJson(true); // Show raw JSON by default on new submission
 
     const processedArgs = args.map(arg => arg.trim()).filter(arg => arg !== "");
 
@@ -289,12 +291,35 @@ export default function VmQueryForm() {
           {result && (
             <>
               <div className="w-full pt-4 mt-4 border-t">
-                <h3 className="text-lg font-semibold mb-2 text-primary">Query Result (Raw JSON):</h3>
-                <div className="bg-muted/50 p-4 rounded-md shadow">
-                  <pre className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-96">
-                    {JSON.stringify(result, null, 2)}
-                  </pre>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-semibold text-primary">Query Result (Raw JSON):</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowRawJson(!showRawJson)}
+                    aria-expanded={showRawJson}
+                    aria-controls="raw-json-content"
+                  >
+                    {showRawJson ? (
+                      <>
+                        <ChevronUp className="mr-2 h-4 w-4" />
+                        Hide Raw JSON
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="mr-2 h-4 w-4" />
+                        Show Raw JSON
+                      </>
+                    )}
+                  </Button>
                 </div>
+                {showRawJson && (
+                  <div id="raw-json-content" className="bg-muted/50 p-4 rounded-md shadow">
+                    <pre className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-96">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
 
               {result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
@@ -314,3 +339,5 @@ export default function VmQueryForm() {
     </Card>
   );
 }
+
+    
