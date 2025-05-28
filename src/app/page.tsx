@@ -15,9 +15,7 @@ export default function HomePage() {
 
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
-    if (!showVmQueryTool) {
-      setShowVmQueryTool(true); // Automatically show the VM query tool
-    }
+    setShowVmQueryTool(true); // Always show the VM query tool when a hash is calculated
   };
 
   return (
