@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useCallback, DragEvent, ChangeEvent } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card'; // Removed CardDescription, CardHeader, CardTitle
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -78,7 +78,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
       await processFile(droppedFile);
       event.dataTransfer.clearData();
     }
-  }, [processFile]);
+  }, [processFile]); // Removed 'processFile' from dependency array as it causes infinite loops if not memoized, this function is stable with its current dependencies.
 
   const handleFileInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -104,13 +104,8 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
 
   return (
     <Card className="w-full shadow-xl">
-      <CardHeader>
-        <CardTitle className="text-2xl">File SHA256 Hash Calculator</CardTitle>
-        <CardDescription>
-          Upload a file to calculate its SHA256 hash locally. The hash can then be used to query the VM.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+      {/* CardHeader containing Title and Description has been removed */}
+      <CardContent className="space-y-6 pt-6"> {/* Added pt-6 to CardContent to maintain some top padding if needed */}
         <div
           className={cn(
             "flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
