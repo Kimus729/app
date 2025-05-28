@@ -23,12 +23,7 @@ export default function HomePage() {
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    // showVmQueryTool remains true, allowing the manual card to appear if it was previously hidden
-    // If it was already true and visible, it stays visible.
-    // If the user manually hid it using its own toggle, it would be false, and would stay false.
-    // This means if user *manually* hid the VM tool, clearing file won't show it again unless hash is re-calculated.
-    // To make it appear after clearing: we must ensure showVmQueryTool is true or user can toggle it.
-    // Current logic: it will be true from handleHashCalculated.
+    setShowVmQueryTool(false); // Hide the manual VM Query Tool card
   };
 
   const handleInitialArgConsumed = () => {
@@ -85,8 +80,8 @@ export default function HomePage() {
           // Manual mode:
           // The "VM Query Tool" card is only rendered if showVmQueryTool is true.
           // showVmQueryTool is initially false. It becomes true after an auto-query cycle
-          // (hash calculated -> auto-query -> file cleared).
-          // Once visible, its own toggle button in the CardHeader controls its state.
+          // (hash calculated -> auto-query -> file cleared -> showVmQueryTool becomes false (new change)).
+          // Or if user manually toggles it.
           showVmQueryTool && (
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
