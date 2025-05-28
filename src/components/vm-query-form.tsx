@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, XCircle, Loader2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 
 interface QueryResult {
   data?: any;
@@ -29,7 +29,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showRawJson, setShowRawJson] = useState(false); // Hidden by default after query
 
   // Ref to hold the latest args to avoid stale closures in useEffect
   const argsRef = useRef(args);
@@ -60,7 +59,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
     setIsLoading(true);
     setError(null);
     setResult(null);
-    // setShowRawJson is handled in finally block
 
     const processedArgs = pArgs.map(arg => arg.trim()).filter(arg => arg !== "");
 
@@ -73,7 +71,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
     if (!payload.scAddress || !payload.funcName) {
         setError("Smart Contract Address and Function Name are required.");
         setIsLoading(false);
-        setShowRawJson(false); // Ensure it's hidden on early exit
         return;
     }
 
@@ -100,22 +97,20 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
       setError(e.message || 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);
-      setShowRawJson(false); // Hide raw JSON by default after query completes
     }
-  }, [/* No dependencies on state setters needed for useCallback if they are stable */]);
+  }, []);
 
 
   useEffect(() => {
     if (initialArg0 && initialArg0.trim() !== "") {
-        const newArgsArray = [...argsRef.current]; // Use ref to get latest args
+        const newArgsArray = [...argsRef.current]; 
         if (newArgsArray.length === 0 || (newArgsArray.length === 1 && newArgsArray[0] === '')) {
-            newArgsArray[0] = initialArg0; // If empty or just one empty string, set it
+            newArgsArray[0] = initialArg0; 
         } else {
-             newArgsArray[0] = initialArg0; // Otherwise, replace the first element
+             newArgsArray[0] = initialArg0; 
         }
-        // If there was only one empty string and now it's filled, make sure it's not duplicated empty
         const finalArgs = newArgsArray.filter((arg, index) => arg !== '' || index === 0 || newArgsArray.length === 1);
-        setArgs(finalArgs.length > 0 ? finalArgs : ['']); // Update UI state
+        setArgs(finalArgs.length > 0 ? finalArgs : ['']); 
 
         if (scAddress.trim() && funcName.trim()) {
             performQuery(scAddress, funcName, finalArgs);
@@ -129,8 +124,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialArg0, scAddress, funcName, performQuery, onInitialArgConsumed]);
-  // Note: argsRef.current is used to avoid adding `args` to deps here, which could cause loops.
-  // `performQuery` and `onInitialArgConsumed` are stable due to `useCallback` or being props.
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -181,7 +174,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
                   for (let i = 0; i < byteArray.length; i++) {
                     hexString += byteArray[i].toString(16).padStart(2, '0');
                   }
-                  const numericValue = BigInt('0x' + (hexString || '0')); // Default to '0' if hexString is empty
+                  const numericValue = BigInt('0x' + (hexString || '0')); 
                   displayValue = `[Numeric]: ${numericValue.toString()}`;
                 }
               } catch (e) {
@@ -198,7 +191,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
                 
                 try {
                   displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-                  if (displayValue.length === 0 && byteArray.length > 0) { // Handle empty string from non-empty bytes
+                  if (displayValue.length === 0 && byteArray.length > 0) { 
                      let hex = "";
                     for(let i = 0; i < byteArray.length; i++) {
                       hex += byteArray[i].toString(16).padStart(2, '0');
@@ -335,53 +328,15 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
             </Alert>
           )}
 
-          {result && (
-            <>
-              <div className="w-full pt-4 mt-4 border-t">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-lg font-semibold text-primary">Query Result (Raw JSON):</h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowRawJson(!showRawJson)}
-                    aria-expanded={showRawJson}
-                    aria-controls="raw-json-content"
-                    aria-pressed={showRawJson} 
-                    role="button"
-                  >
-                    {showRawJson ? (
-                      <>
-                        <ChevronUp className="mr-2 h-4 w-4" />
-                        Hide Raw JSON
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="mr-2 h-4 w-4" />
-                        Show Raw JSON
-                      </>
-                    )}
-                  </Button>
-                </div>
-                {showRawJson && (
-                  <div id="raw-json-content" className="bg-muted/50 p-4 rounded-md shadow">
-                    <pre className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-96">
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
-
-              {result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
-                <Card className="w-full mt-6 shadow-md">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {renderDecodedReturnData()}
-                  </CardContent>
-                </Card>
-              )}
-            </>
+          {result && result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
+            <Card className="w-full mt-6 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {renderDecodedReturnData()}
+              </CardContent>
+            </Card>
           )}
         </CardFooter>
       </form>
