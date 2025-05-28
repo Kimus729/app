@@ -48,7 +48,7 @@ export default function HomePage() {
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
               <Hash className="h-8 w-8 text-primary" />
-              <CardTitle className="text-2xl">Chargement fichier</CardTitle>
+              <CardTitle className="text-2xl">Load File</CardTitle>
             </div>
             <Button
               variant="ghost"
