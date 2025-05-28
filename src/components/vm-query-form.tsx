@@ -5,9 +5,9 @@ import { useState, useEffect, useCallback, FormEvent, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'; // CardDescription removed as it's not used here
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, XCircle, Loader2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react'; // ChevronDown, ChevronUp removed
 
 interface QueryResult {
   data?: any;
@@ -271,12 +271,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
 
   return (
-    <Card className="w-full shadow-xl">
+    <>
       {!isAutoMode && (
-        <>
-          {/* CardHeader for manual mode, title and description are now part of page.tsx controlled Card */}
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-6">
+        <form onSubmit={handleSubmit}>
+            <div className="space-y-6"> {/* Replaces CardContent for padding form elements */}
               <div className="space-y-2">
                 <Label htmlFor="scAddress" className="font-semibold">Smart Contract Address</Label>
                 <Input
@@ -338,8 +336,8 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   Add Argument
                 </Button>
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col items-start space-y-4">
+            </div>
+            <CardFooter className="flex flex-col items-start space-y-4 pt-6"> {/* Added pt-6 to CardFooter as it's no longer inside a CardContent */}
               <Button 
                 type="submit" 
                 disabled={isLoading} 
@@ -356,7 +354,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               </Button>
             </CardFooter>
           </form>
-        </>
       )}
 
       { (isLoading && isAutoMode) && 
@@ -392,8 +389,8 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
             {(isAutoMode && !initialArg0) ? "Awaiting file hash for query..." : "No data returned or an issue occurred."}
         </div>
        )}
-
-    </Card>
+    </>
   );
 }
 
+    
