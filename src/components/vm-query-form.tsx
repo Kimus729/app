@@ -50,7 +50,8 @@ export default function VmQueryForm() {
     setIsLoading(true);
     setError(null);
     setResult(null);
-    // setShowRawJson(true); // Removed this line to persist visibility state
+    // Note: showRawJson state is NOT reset here to persist user's choice across queries
+    // until the query finishes, then it will be set to false.
 
     const processedArgs = args.map(arg => arg.trim()).filter(arg => arg !== "");
 
@@ -89,6 +90,7 @@ export default function VmQueryForm() {
       setError(e.message || 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);
+      setShowRawJson(false); // Hide raw JSON by default after query completes
     }
   };
 
@@ -344,3 +346,4 @@ export default function VmQueryForm() {
     
 
     
+
