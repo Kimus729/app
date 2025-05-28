@@ -19,18 +19,18 @@ interface QueryResult {
 interface VmQueryFormProps {
   initialArg0?: string | null;
   onInitialArgConsumed?: () => void;
+  isAutoMode?: boolean;
 }
 
-export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQueryFormProps) {
+export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoMode = false }: VmQueryFormProps) {
   const [scAddress, setScAddress] = useState('erd1qqqqqqqqqqqqqpgq209g5ct99dcyjdxetdykgy92yqf0cnxf0qesc2aw9w');
   const [funcName, setFuncName] = useState('getPrintInfoFromHash');
-  const [args, setArgs] = useState<string[]>(['']); // Default to one empty arg field for manual input
+  const [args, setArgs] = useState<string[]>(['']); 
   
   const [result, setResult] = useState<QueryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Ref to hold the latest args to avoid stale closures in useEffect
   const argsRef = useRef(args);
   useEffect(() => {
     argsRef.current = args;
@@ -38,7 +38,12 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
   
   useEffect(() => {
     setError(null);
-  }, [scAddress, funcName, args]);
+    if (isAutoMode) { // In auto mode, clear previous results if component re-renders without new initialArg0
+        if (!initialArg0) {
+            // setResult(null); // This might be too aggressive if we want results to persist
+        }
+    }
+  }, [scAddress, funcName, args, isAutoMode, initialArg0]);
 
   const handleArgChange = (index: number, value: string) => {
     const newArgs = [...args];
@@ -73,6 +78,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
         setIsLoading(false);
         return;
     }
+     if (payload.args.length === 0 && pArgs.some(arg => arg.trim() === "")) {
+        // If original pArgs had an empty string that was filtered out,
+        // and this caused payload.args to be empty, treat it as intentional empty arg
+        // This case is tricky. For now, if all args are empty strings, they become an empty array.
+        // If the user intended to send an empty string, they should ensure it's the only arg or handle it.
+    }
+
 
     try {
       const response = await fetch('https://devnet-gateway.multiversx.com/vm-values/query', {
@@ -88,7 +100,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
 
       if (!response.ok || responseData.error) {
         setError(responseData.error || `API Error: ${responseData.data?.returnMessage || responseData.returnMessage || response.statusText}`);
-        setResult(responseData);
+        setResult(responseData); // Still set result to show partial error data if available
       } else {
         setResult(responseData);
       }
@@ -109,11 +121,12 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
         } else {
              newArgsArray[0] = initialArg0; 
         }
-        const finalArgs = newArgsArray.filter((arg, index) => arg !== '' || index === 0 || newArgsArray.length === 1);
-        setArgs(finalArgs.length > 0 ? finalArgs : ['']); 
+        // Ensure only non-empty strings or the first one if it's the only one (even if empty initially)
+        const finalArgs = newArgsArray.filter((arg, index) => arg.trim() !== '' || index === 0 || newArgsArray.length === 1);
+        setArgs(finalArgs.length > 0 ? finalArgs : ['']);
 
         if (scAddress.trim() && funcName.trim()) {
-            performQuery(scAddress, funcName, finalArgs);
+            performQuery(scAddress, funcName, finalArgs.map(a => a.trim())); // Trim args before sending
         } else {
              setError("Cannot auto-query: Smart Contract Address or Function Name is missing. Please fill them and submit manually or re-upload the file.");
         }
@@ -123,7 +136,8 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArg0, scAddress, funcName, performQuery, onInitialArgConsumed]);
+  }, [initialArg0]); // Removed scAddress, funcName, performQuery to avoid re-triggering unless initialArg0 changes.
+                     // performQuery is memoized. scAddress and funcName are fixed for auto-query.
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -234,112 +248,133 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed }: VmQue
 
   return (
     <Card className="w-full shadow-xl">
-      <CardHeader>
-        <CardTitle className="text-2xl">Query VM Values</CardTitle>
-        <CardDescription>
-          Enter the Smart Contract details and arguments to query the MultiversX devnet.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="scAddress" className="font-semibold">Smart Contract Address</Label>
-            <Input
-              id="scAddress"
-              placeholder="erd1..."
-              value={scAddress}
-              onChange={(e) => setScAddress(e.target.value)}
-              required
-              className="text-sm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="funcName" className="font-semibold">Function Name</Label>
-            <Input
-              id="funcName"
-              placeholder="getFunction"
-              value={funcName}
-              onChange={(e) => setFuncName(e.target.value)}
-              required
-              className="text-sm"
-            />
-          </div>
-          
-          <div className="space-y-3">
-            <Label className="font-semibold">Arguments</Label>
-            {args.map((arg, index) => (
-              <div key={index} className="flex items-center space-x-2">
+      {!isAutoMode && (
+        <>
+          <CardHeader>
+            <CardTitle className="text-2xl">Query VM Values</CardTitle>
+            <CardDescription>
+              Enter the Smart Contract details and arguments to query the MultiversX devnet.
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="scAddress" className="font-semibold">Smart Contract Address</Label>
                 <Input
-                  type="text"
-                  placeholder={`Argument ${index + 1}`}
-                  value={arg}
-                  onChange={(e) => handleArgChange(index, e.target.value)}
-                  className="text-sm flex-grow"
-                  aria-label={`Argument ${index + 1}`}
+                  id="scAddress"
+                  placeholder="erd1..."
+                  value={scAddress}
+                  onChange={(e) => setScAddress(e.target.value)}
+                  required
+                  className="text-sm"
                 />
-                { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeArgField(index)}
-                    aria-label={`Remove argument ${index + 1}`}
-                    className="text-destructive hover:text-destructive/90"
-                  >
-                    <XCircle className="h-5 w-5" />
-                  </Button>
-                ) : (
-                  <div className="w-10 h-10"></div> 
-                )}
               </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addArgField}
-              className="text-sm border-dashed hover:bg-accent/10 hover:text-accent"
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Argument
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col items-start space-y-4">
-           <Button 
-            type="submit" 
-            disabled={isLoading} 
-            className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-accent"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Querying...
-              </>
-            ) : (
-              'Submit Query'
-            )}
-          </Button>
+              <div className="space-y-2">
+                <Label htmlFor="funcName" className="font-semibold">Function Name</Label>
+                <Input
+                  id="funcName"
+                  placeholder="getFunction"
+                  value={funcName}
+                  onChange={(e) => setFuncName(e.target.value)}
+                  required
+                  className="text-sm"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <Label className="font-semibold">Arguments</Label>
+                {args.map((arg, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      placeholder={`Argument ${index + 1}`}
+                      value={arg}
+                      onChange={(e) => handleArgChange(index, e.target.value)}
+                      className="text-sm flex-grow"
+                      aria-label={`Argument ${index + 1}`}
+                    />
+                    { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeArgField(index)}
+                        aria-label={`Remove argument ${index + 1}`}
+                        className="text-destructive hover:text-destructive/90"
+                      >
+                        <XCircle className="h-5 w-5" />
+                      </Button>
+                    ) : (
+                      <div className="w-10 h-10"></div> 
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addArgField}
+                  className="text-sm border-dashed hover:bg-accent/10 hover:text-accent"
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Argument
+                </Button>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col items-start space-y-4">
+              <Button 
+                type="submit" 
+                disabled={isLoading} 
+                className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-accent"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Querying...
+                  </>
+                ) : (
+                  'Submit Query'
+                )}
+              </Button>
+            </CardFooter>
+          </form>
+        </>
+      )}
 
-          {error && (
-            <Alert variant="destructive" className="w-full">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+      {/* Result and Error display section - always potentially visible if data exists */}
+      { (isLoading && isAutoMode) && 
+        <div className="p-6 flex items-center justify-center">
+            <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
+            <p className="text-muted-foreground">Querying with file hash...</p>
+        </div>
+      }
+      {error && (
+        <div className="p-6 pt-0">
+          <Alert variant="destructive" className="w-full">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
 
-          {result && result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
-            <Card className="w-full mt-6 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {renderDecodedReturnData()}
-              </CardContent>
-            </Card>
-          )}
-        </CardFooter>
-      </form>
+      {result && result.data && result.data.data && Array.isArray(result.data.data.returnData) && (
+        <div className="p-6 pt-0"> {/* Use a div instead of CardFooter if CardFooter implies form context */}
+          <Card className="w-full mt-2 shadow-md"> {/* Reduced margin if inputs are hidden */}
+            <CardHeader>
+              <CardTitle className="text-xl text-accent">Éléments de retour VM (décodés)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderDecodedReturnData()}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+       {result && !result.data?.data?.returnData && !error && !isLoading && (
+        <div className="p-6 text-center text-muted-foreground">
+            {(isAutoMode && !initialArg0) ? "Awaiting file hash for query..." : "No data returned or an issue occurred."}
+        </div>
+       )}
+
     </Card>
   );
 }

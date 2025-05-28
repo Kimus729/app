@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils';
 
 interface FileHashCalculatorProps {
   onHashCalculated?: (hash: string) => void;
+  onFileCleared?: () => void;
 }
 
-export default function FileHashCalculator({ onHashCalculated }: FileHashCalculatorProps) {
+export default function FileHashCalculator({ onHashCalculated, onFileCleared }: FileHashCalculatorProps) {
   const [file, setFile] = useState<File | null>(null);
   const [hash, setHash] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function FileHashCalculator({ onHashCalculated }: FileHashCalcula
 
   const processFile = async (selectedFile: File | null) => {
     if (!selectedFile) {
-      clearFile();
+      clearFile(); // Call clearFile which now handles onFileCleared
       return;
     }
 
@@ -95,6 +96,9 @@ export default function FileHashCalculator({ onHashCalculated }: FileHashCalcula
     const fileInput = document.getElementById('file-upload-input') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = ''; // Reset the file input
+    }
+    if (onFileCleared) {
+      onFileCleared();
     }
   };
 
