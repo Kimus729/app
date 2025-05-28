@@ -299,6 +299,8 @@ export default function VmQueryForm() {
                     onClick={() => setShowRawJson(!showRawJson)}
                     aria-expanded={showRawJson}
                     aria-controls="raw-json-content"
+                    aria-pressed={showRawJson} 
+                    role="button"
                   >
                     {showRawJson ? (
                       <>
@@ -339,5 +341,4 @@ export default function VmQueryForm() {
     </Card>
   );
 }
-
     
