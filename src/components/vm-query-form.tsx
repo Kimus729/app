@@ -118,24 +118,58 @@ export default function VmQueryForm() {
             let hasError = false;
             const originalItemPreview = item.length > 30 ? item.substring(0, 27) + '...' : item;
 
-            try {
-              const binaryString = atob(item);
-              const byteArray = new Uint8Array(binaryString.length);
-              for (let i = 0; i < binaryString.length; i++) {
-                byteArray[i] = binaryString.charCodeAt(i);
-              }
-              
+            // Check if the item is the 1st (index 0), 3rd (index 2), or 7th (index 6) in the current group
+            if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) {
+              // Numeric decoding logic
               try {
-                displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-              } catch (utfError) {
-                displayValue = Array.from(byteArray).map(b => b.toString(16).padStart(2, '0')).join('');
-                if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
-                displayValue = `[Hex]: ${displayValue}`;
-                hasError = true; 
+                const binaryString = atob(item);
+                const byteArray = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  byteArray[i] = binaryString.charCodeAt(i);
+                }
+
+                if (byteArray.length === 0) {
+                  displayValue = "[Numeric]: (empty)";
+                } else {
+                  let hexString = "";
+                  for (let i = 0; i < byteArray.length; i++) {
+                    hexString += byteArray[i].toString(16).padStart(2, '0');
+                  }
+                  // Handle case where byteArray might be all zeros but not empty
+                  if (hexString === "" && byteArray.length > 0) hexString = "0".repeat(byteArray.length * 2);
+                  else if (hexString === "") hexString = "0"; // For truly empty valid base64 resulting in empty byte array
+                  
+                  const numericValue = BigInt('0x' + hexString);
+                  displayValue = `[Numeric]: ${numericValue.toString()}`;
+                }
+              } catch (e) {
+                displayValue = `Erreur de décodage numérique (Base64 invalide ou autre): ${e instanceof Error ? e.message : String(e)}`;
+                hasError = true;
               }
-            } catch (e) {
-              displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
-              hasError = true;
+            } else {
+              // Existing UTF-8/Hex decoding logic
+              try {
+                const binaryString = atob(item);
+                const byteArray = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  byteArray[i] = binaryString.charCodeAt(i);
+                }
+                
+                try {
+                  displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+                } catch (utfError) {
+                  let hex = "";
+                  for(let i = 0; i < byteArray.length; i++) {
+                    hex += byteArray[i].toString(16).padStart(2, '0');
+                  }
+                  displayValue = hex;
+                  if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
+                  displayValue = `[Hex]: ${displayValue}`;
+                }
+              } catch (e) {
+                displayValue = `Erreur de décodage Base64: ${e instanceof Error ? e.message : String(e)}`;
+                hasError = true;
+              }
             }
 
             return (
