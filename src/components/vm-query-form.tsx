@@ -50,7 +50,7 @@ export default function VmQueryForm() {
     setIsLoading(true);
     setError(null);
     setResult(null);
-    setShowRawJson(true); // Show raw JSON by default on new submission
+    // setShowRawJson(true); // Removed this line to persist visibility state
 
     const processedArgs = args.map(arg => arg.trim()).filter(arg => arg !== "");
 
