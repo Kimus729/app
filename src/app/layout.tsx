@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, Exo_2 } from 'next/font/google'; // Added Exo_2, removed DM_Serif_Display
+import { Inter, Kanit, Exo_2 } from 'next/font/google'; // Ensured DM_Serif_Display is not imported
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -17,14 +17,14 @@ const kanit = Kanit({
   weight: ['400', '700'],
 });
 
-const exo2 = Exo_2({ // Instantiated Exo_2
+const exo2 = Exo_2({ 
   variable: '--font-exo2',
   subsets: ['latin'],
-  weight: ['400', '700'], // Exo 2 offers various weights
+  weight: ['400', '700'], 
   display: 'swap',
 });
 
-let faviconHref = '/favicon.png'; // Default for local development
+let faviconHref = '/favicon.png'; 
 
 if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
   const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
@@ -49,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${exo2.variable} font-sans antialiased`}> {/* Added exo2.variable */}
+      <body className={`${inter.variable} ${kanit.variable} ${exo2.variable} font-sans antialiased`}>
         {children}
         <Toaster />
       </body>

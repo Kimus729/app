@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import Image from 'next/image'; // Import next/image
+import Image from 'next/image';
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export default function HomePage() {
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    setShowVmQueryTool(false); // Hide VM query tool when file is cleared
+    setShowVmQueryTool(false); 
   };
 
   const handleInitialArgConsumed = () => {
@@ -57,7 +57,7 @@ export default function HomePage() {
             unoptimized={process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true'}
           />
         </div>
-        <h1 className="text-4xl font-bold text-blue-950 font-[var(--font-exo2)]">VOSDECISIONS</h1> {/* Changed font to Exo 2 */}
+        <h1 className="text-4xl font-bold text-blue-950 font-[var(--font-exo2)]">VOSDECISIONS</h1>
       </header>
 
       <div className="w-full max-w-3xl space-y-8 flex-grow">
