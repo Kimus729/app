@@ -9,6 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react'; 
 
+// Determine if running in GitHub Actions environment for path prefixing
+const IS_GITHUB_ACTIONS = process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true';
+const LOGO_PATH = IS_GITHUB_ACTIONS ? '/app/vosdecisions-logo.png' : '/vosdecisions-logo.png';
+
+
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
   const [showVmQueryTool, setShowVmQueryTool] = useState(false);
@@ -36,7 +41,7 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src="/vosdecisions-logo.png" 
+            src={LOGO_PATH}
             alt="VOSDECISIONS Logo"
             width={80} 
             height={80} 
@@ -57,6 +62,8 @@ export default function HomePage() {
               onClick={() => setShowFileHashCalculator(!showFileHashCalculator)}
               aria-expanded={showFileHashCalculator}
               aria-controls="file-hash-calculator-content"
+              aria-pressed={showFileHashCalculator}
+              role="button"
             >
               {showFileHashCalculator ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
               <span className="sr-only">{showFileHashCalculator ? 'Hide' : 'Show'} Check File</span>
@@ -93,6 +100,8 @@ export default function HomePage() {
                   onClick={() => setShowVmQueryTool(!showVmQueryTool)}
                   aria-expanded={showVmQueryTool}
                   aria-controls="vm-query-tool-content"
+                  aria-pressed={showVmQueryTool}
+                  role="button"
                 >
                   {showVmQueryTool ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>

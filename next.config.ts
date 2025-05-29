@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Expose the GITHUB_ACTIONS environment variable to the client-side
+  env: {
+    NEXT_PUBLIC_GITHUB_ACTIONS: process.env.GITHUB_ACTIONS,
+  }
 };
 
 export default nextConfig;
