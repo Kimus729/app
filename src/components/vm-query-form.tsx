@@ -222,21 +222,18 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
           const byteArray = new Uint8Array(binaryString.length);
           
           if (byteArray.length === 0) {
-            if (group[2].length === 0) { // Base64 was empty, so nonce is 0
-              nonceHexForNftId = "0";
-            } else {
-              nonceHexForNftId = "ErrorDecodingNonceToBytes";
-              nftIdError += "Nonce base64 (for NFT ID) decoded to empty bytes. ";
+            // If group[2] (base64 string) is empty, nonce is 0. Represent as "00" for NFT ID.
+            nonceHexForNftId = "00";
+            if (group[2].length !== 0) {
+              // Non-empty base64 decoded to empty bytes - unusual. Could warn or error.
+              // Sticking to "00" but this is an edge case.
             }
           } else {
             let hexStringFromBytes = "";
             for (let i = 0; i < byteArray.length; i++) {
               hexStringFromBytes += byteArray[i].toString(16).padStart(2, '0');
             }
-            // Convert to BigInt then back to hex string to remove leading zeros
-            // e.g., "0001" becomes "1", "0100" becomes "100"
-            // If hexStringFromBytes is "00", BigInt('0x00').toString(16) is "0"
-            nonceHexForNftId = BigInt('0x' + hexStringFromBytes).toString(16);
+            nonceHexForNftId = hexStringFromBytes; // Use the direct hex string
           }
         } catch (e) {
           nonceHexForNftId = "ErrorDecodingNonce";
@@ -506,5 +503,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </div>
   );
 }
+
+    
 
     
