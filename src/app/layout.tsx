@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, DM_Serif_Display } from 'next/font/google'; // Added DM_Serif_Display
+import { Inter, Kanit, Exo_2 } from 'next/font/google'; // Added Exo_2, removed DM_Serif_Display
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -17,10 +17,10 @@ const kanit = Kanit({
   weight: ['400', '700'],
 });
 
-const dmSerif = DM_Serif_Display({ // Instantiated DM_Serif_Display
-  variable: '--font-dm-serif',
+const exo2 = Exo_2({ // Instantiated Exo_2
+  variable: '--font-exo2',
   subsets: ['latin'],
-  weight: ['400'], // DM Serif Display typically only has 400 weight
+  weight: ['400', '700'], // Exo 2 offers various weights
   display: 'swap',
 });
 
@@ -49,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${dmSerif.variable} font-sans antialiased`}> {/* Added dmSerif.variable */}
+      <body className={`${inter.variable} ${kanit.variable} ${exo2.variable} font-sans antialiased`}> {/* Added exo2.variable */}
         {children}
         <Toaster />
       </body>

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Image from 'next/image'; // Import next/image
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -57,7 +57,7 @@ export default function HomePage() {
             unoptimized={process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true'}
           />
         </div>
-        <h1 className="text-4xl font-bold text-blue-950 font-[var(--font-dm-serif)]">VOSDECISIONS</h1> {/* Changed to dm-serif */}
+        <h1 className="text-4xl font-bold text-blue-950 font-[var(--font-exo2)]">VOSDECISIONS</h1> {/* Changed font to Exo 2 */}
       </header>
 
       <div className="w-full max-w-3xl space-y-8 flex-grow">
@@ -118,7 +118,6 @@ export default function HomePage() {
               </CardHeader>
               {showVmQueryTool && (
                 <CardContent id="vm-query-tool-content">
-                    {/* CardDescription removed as per previous requests for this section */}
                     <VmQueryForm
                       initialArg0={null}
                       onInitialArgConsumed={handleInitialArgConsumed}
