@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import NftImageDisplay from './NftImageDisplay'; // Import the new component
 
 interface QueryResult {
   data?: any;
@@ -206,10 +207,11 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
             }
           }
         } catch (e) {
-          tokenNameForNftId = "Error";
+          tokenNameForNftId = "ErrorDecodingTokenName";
           nftIdError += "Token Name decoding error. ";
         }
       } else {
+        tokenNameForNftId = "MissingTokenNameData";
         nftIdError += "Missing Token Name data for NFT ID. ";
       }
 
@@ -218,26 +220,31 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
-          if (byteArray.length === 0) {
-            nonceHexForNftId = "00"; // An empty byte array for nonce is typically 0, hex "00" for one byte.
-          } else {
-            let hexString = "";
-            for (let i = 0; i < byteArray.length; i++) hexString += byteArray[i].toString(16).padStart(2, '0');
-            nonceHexForNftId = hexString; 
+          let hexString = "";
+          for (let i = 0; i < byteArray.length; i++) {
+            hexString += byteArray[i].toString(16).padStart(2, '0');
           }
+          nonceHexForNftId = hexString || "00"; // Ensure at least "00" if byte array was empty after decode
+          if (byteArray.length === 0 && group[2].length > 0) { // if original base64 was not empty but resulted in empty bytes
+             nonceHexForNftId = "ErrorDecodingNonceToBytes";
+             nftIdError += "Nonce base64 decoded to empty bytes. ";
+          } else if(byteArray.length === 0 && group[2].length === 0) {
+             nonceHexForNftId = "00"; // An empty nonce is effectively 0.
+          }
+
         } catch (e) {
-          nonceHexForNftId = "Error";
+          nonceHexForNftId = "ErrorDecodingNonce";
           nftIdError += "Nonce decoding error. ";
         }
       } else {
+        nonceHexForNftId = "MissingNonceData";
         nftIdError += "Missing Nonce data for NFT ID. ";
       }
       
-      if (!nftIdError.trim()) {
+      if (!nftIdError.trim() && tokenNameForNftId && nonceHexForNftId && !tokenNameForNftId.startsWith("Error") && !nonceHexForNftId.startsWith("Error")) {
         nftIdValue = `${tokenNameForNftId}-${nonceHexForNftId}`;
       } else {
-        nftIdValue = `Error: ${nftIdError}`;
+        nftIdValue = `Error: Could not construct NFT ID. ${nftIdError}`;
       }
 
 
@@ -256,7 +263,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
               if (displayIndex === 3) { // This is our new "NFT ID"
                 displayValue = nftIdValue;
-                hasError = !!nftIdError.trim();
+                hasError = nftIdValue.startsWith("Error:");
               } else {
                 // Map displayIndex to the original data index in the 7-item group
                 if (displayIndex < 3) { // Token ID, Token Name, Nonce
@@ -276,8 +283,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     }
 
                     if (byteArray.length === 0) {
-                      if (effectiveItemTypeIndex === 6) { // Timestamp
-                        displayValue = new Date(0).toLocaleString(); 
+                      if (effectiveItemTypeIndex === 6) { // Timestamp (original index 6)
+                         const date = new Date(0); // Unix epoch
+                         displayValue = date.toLocaleString();
                       } else if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce
                         displayValue = "0";
                       } else { 
@@ -292,7 +300,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                       if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce
                           const numericValue = BigInt('0x' + hexString);
                           displayValue = numericValue.toString();
-                      } else if (effectiveItemTypeIndex === 6) { // Timestamp (7th item in original data)
+                      } else if (effectiveItemTypeIndex === 6) { // Timestamp (original index 6)
                           const numericValue = BigInt('0x' + hexString);
                           try {
                               const timestampSeconds = Number(numericValue);
@@ -312,9 +320,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                               displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
                               hasError = true;
                           }
-                      } else if (effectiveItemTypeIndex === 5) { // Transaction ID (6th item in original data)
+                      } else if (effectiveItemTypeIndex === 5) { // Transaction ID (original index 5)
                           displayValue = hexString;
-                      } else { // Token Name, NFT Name, Hash Value
+                      } else { // Token Name (original 1), NFT Name (original 3), Hash Value (original 4)
                           try {
                               displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
                               if (displayValue.length === 0 && byteArray.length > 0) { 
@@ -346,7 +354,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   <span className="block text-xs font-medium text-muted-foreground mb-1">
                     {itemLabel}
                   </span>
-                  {(displayIndex === 6 && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)") ? ( // This corresponds to the original Transaction ID
+                  {(itemLabel === "Transaction ID" && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)" && !displayValue.startsWith("Error")) ? (
                     <a
                       href={`https://devnet-explorer.multiversx.com/transactions/${displayValue}`}
                       target="_blank"
@@ -363,6 +371,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               );
             })}
           </ul>
+          <NftImageDisplay nftId={nftIdValue} />
         </div>
       );
     });
