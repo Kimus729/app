@@ -2,11 +2,12 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image'; // Import next/image
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DatabaseZap, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react'; // Removed DatabaseZap
 
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
@@ -33,6 +34,15 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-background">
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
+        <div className="flex justify-center mb-4">
+          <Image
+            src="https://placehold.co/100x100.png" // Placeholder for your logo
+            alt="VOSDECISIONS Logo"
+            width={80} // Adjust width as needed
+            height={80} // Adjust height as needed
+            data-ai-hint="abstract square root database" // Hint for actual image replacement
+          />
+        </div>
         <h1 className="text-4xl font-bold text-primary-foreground font-[var(--font-exo2)]">VOSDECISIONS</h1>
       </header>
       
@@ -40,7 +50,6 @@ export default function HomePage() {
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
-              {/* Icon removed as per previous request */}
               <CardTitle className="text-2xl">Check File</CardTitle>
             </div>
             <Button
@@ -73,11 +82,11 @@ export default function HomePage() {
             />
           )
         ) : (
-          showVmQueryTool && ( // Only render the manual VM Query Card if showVmQueryTool is true
+          showVmQueryTool && ( 
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
-                  <DatabaseZap className="h-8 w-8 text-primary" />
+                  {/* <DatabaseZap className="h-8 w-8 text-primary" /> // Icon removed as per prior request */}
                   <CardTitle className="text-2xl">VM Query Tool</CardTitle>
                 </div>
                 <Button
@@ -91,13 +100,13 @@ export default function HomePage() {
                   <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
                 </Button>
               </CardHeader>
-              {showVmQueryTool && ( // Content of the card also depends on showVmQueryTool
+              {showVmQueryTool && ( 
                 <CardContent id="vm-query-tool-content">
                   <CardDescription className="mb-4 -mt-2">
                     Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
                   </CardDescription>
                   <VmQueryForm 
-                    initialArg0={null} // Pass null when not in auto mode from file
+                    initialArg0={null} 
                     onInitialArgConsumed={handleInitialArgConsumed}
                     isAutoMode={false} 
                   />
