@@ -37,7 +37,7 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src="/vosdecisions-logo.png" // Simplified path, relying on assetPrefix/basePath
+            src="vosdecisions-logo.png" // Changed to relative path
             alt="VOSDECISIONS Logo"
             width={80}
             height={80}
