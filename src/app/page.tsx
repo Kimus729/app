@@ -10,20 +10,20 @@ import { DatabaseZap, ChevronDown, ChevronUp } from 'lucide-react'; // Removed H
 
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
-  const [showVmQueryTool, setShowVmQueryTool] = useState(false); 
+  const [showVmQueryTool, setShowVmQueryTool] = useState(false);
   const [hashForQuery, setHashForQuery] = useState<string | null>(null);
   const [autoQueryModeActive, setAutoQueryModeActive] = useState(false);
 
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
     setAutoQueryModeActive(true);
-    setShowVmQueryTool(true); 
+    setShowVmQueryTool(true);
   };
 
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    setShowVmQueryTool(false); 
+    setShowVmQueryTool(false);
   };
 
   const handleInitialArgConsumed = () => {
@@ -33,14 +33,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-background">
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
-        <h1 className="text-4xl font-bold text-primary">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-primary-foreground">VOSDECISIONS</h1>
       </header>
       
       <div className="w-full max-w-3xl space-y-8 flex-grow">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
-              {/* Hash icon removed from here */}
               <CardTitle className="text-2xl">Check File</CardTitle>
             </div>
             <Button
@@ -51,7 +50,7 @@ export default function HomePage() {
               aria-controls="file-hash-calculator-content"
             >
               {showFileHashCalculator ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              <span className="sr-only">{showFileHashCalculator ? 'Hide' : 'Show'} File Hash Calculator</span>
+              <span className="sr-only">{showFileHashCalculator ? 'Hide' : 'Show'} Check File</span>
             </Button>
           </CardHeader>
           {showFileHashCalculator && (
