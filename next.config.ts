@@ -4,9 +4,12 @@ import type {NextConfig} from 'next';
 // Determine if the build is running in GitHub Actions
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 
+const repoName = isGithubActions ? process.env.GITHUB_REPOSITORY?.split('/')[1] || 'app' : '';
+
 const nextConfig: NextConfig = {
   output: 'export', // Crucial for static site generation (GitHub Pages)
-  basePath: isGithubActions ? '/app' : undefined, // Set basePath for GitHub Pages deployment
+  basePath: isGithubActions ? `/${repoName}` : undefined, // Set basePath for GitHub Pages deployment
+  assetPrefix: isGithubActions ? `/${repoName}/` : undefined, // Set assetPrefix for GitHub Pages deployment
   typescript: {
     ignoreBuildErrors: true,
   },
