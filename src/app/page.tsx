@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Image from 'next/image'; // Import next/image
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export default function HomePage() {
     setHashForQuery(null);
   };
 
-  let logoSrc = "vosdecisions-logo.png"; 
+  let logoSrc = "/vosdecisions-logo.png";
 
   if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
     const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
@@ -49,16 +49,17 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src={logoSrc} 
+            src={logoSrc}
             alt="VOSDECISIONS Logo"
             width={80}
             height={80}
             data-ai-hint="abstract square root database"
+            unoptimized={process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true'}
           />
         </div>
-        <h1 className="text-4xl font-bold text-blue-950 font-[var(--font-genos)]">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-blue-950 font-[var(--font-dm-serif)]">VOSDECISIONS</h1> {/* Changed to dm-serif */}
       </header>
-      
+
       <div className="w-full max-w-3xl space-y-8 flex-grow">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -94,9 +95,9 @@ export default function HomePage() {
               onInitialArgConsumed={handleInitialArgConsumed}
               isAutoMode={true}
             />
-          
+
         ) : (
-          showVmQueryTool ? ( 
+          showVmQueryTool ? (
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
@@ -105,7 +106,7 @@ export default function HomePage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowVmQueryTool(!showVmQueryTool)} 
+                  onClick={() => setShowVmQueryTool(!showVmQueryTool)}
                   aria-expanded={showVmQueryTool}
                   aria-controls="vm-query-tool-content"
                   aria-pressed={showVmQueryTool}
@@ -117,11 +118,9 @@ export default function HomePage() {
               </CardHeader>
               {showVmQueryTool && (
                 <CardContent id="vm-query-tool-content">
-                    <CardDescription className="mb-4 -mt-2">
-                      Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
-                    </CardDescription>
+                    {/* CardDescription removed as per previous requests for this section */}
                     <VmQueryForm
-                      initialArg0={null} 
+                      initialArg0={null}
                       onInitialArgConsumed={handleInitialArgConsumed}
                       isAutoMode={false}
                     />

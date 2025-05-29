@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, Genos } from 'next/font/google';
+import { Inter, Kanit, DM_Serif_Display } from 'next/font/google'; // Added DM_Serif_Display
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -17,17 +17,17 @@ const kanit = Kanit({
   weight: ['400', '700'],
 });
 
-const genos = Genos({
-  variable: '--font-genos',
+const dmSerif = DM_Serif_Display({ // Instantiated DM_Serif_Display
+  variable: '--font-dm-serif',
   subsets: ['latin'],
+  weight: ['400'], // DM Serif Display typically only has 400 weight
   display: 'swap',
-  weight: ['400', '700'],
 });
 
 let faviconHref = '/favicon.png'; // Default for local development
 
 if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
-  const [owner, repoName] = process.env.NEXT_PUBLIC_UNDERSCORE_GITHUB_REPOSITORY ? process.env.NEXT_PUBLIC_UNDERSCORE_GITHUB_REPOSITORY.split('/') : process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
+  const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
   if (owner && repoName) {
     faviconHref = `https://${owner}.github.io/${repoName}/favicon.png`;
   }
@@ -49,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${genos.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${kanit.variable} ${dmSerif.variable} font-sans antialiased`}> {/* Added dmSerif.variable */}
         {children}
         <Toaster />
       </body>
