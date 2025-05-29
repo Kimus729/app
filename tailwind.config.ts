@@ -11,7 +11,7 @@ export default {
   theme: {
   	extend: {
       fontFamily: {
-        'dm-serif-text': ['"DM Serif Text"', 'serif'],
+        'scope-one': ['"Scope One"', 'serif'],
       },
   		colors: {
   			background: 'hsl(var(--background))',
