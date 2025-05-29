@@ -20,7 +20,7 @@ const kanit = Kanit({
 const dmSerifDisplay = DM_Serif_Display({
   variable: '--font-dm-serif-display',
   subsets: ['latin'],
-  weight: '400', // DM Serif Display typically has a 400 weight
+  weight: '400', 
   display: 'swap',
 });
 

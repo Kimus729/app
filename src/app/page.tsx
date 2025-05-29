@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
