@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, Josefin_Sans } from 'next/font/google'; // Changed Exo_2 to Kanit
+import { Inter, Kanit, GFS_Didot } from 'next/font/google'; // Changed Exo_2 to Kanit, Added GFS_Didot
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // For potential toast notifications
 
@@ -10,16 +10,16 @@ const inter = Inter({
   display: 'swap',
 });
 
-const kanit = Kanit({ // Added Kanit
+const kanit = Kanit({ // Kept Kanit for now, might be removed if not used elsewhere
   variable: '--font-kanit',
   subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '700'], // Specify weights, 700 for bold
+  weight: ['400', '700'], 
 });
 
-const josefinSans = Josefin_Sans({ // Kept Josefin Sans
-  variable: '--font-josefin-sans',
-  subsets: ['latin'],
+const gfsDidot = GFS_Didot({ // Added GFS_Didot
+  variable: '--font-gfs-didot',
+  subsets: ['greek'], // GFS Didot typically supports Greek, check subsets if others needed
   display: 'swap',
   weight: ['400'], 
 });
@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${josefinSans.variable} font-sans antialiased`}> {/* Updated font variables */}
+      <body className={`${inter.variable} ${kanit.variable} ${gfsDidot.variable} font-sans antialiased`}> {/* Updated font variables */}
         {children}
         <Toaster />
       </body>

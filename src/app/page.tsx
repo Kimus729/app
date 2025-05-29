@@ -32,16 +32,14 @@ export default function HomePage() {
     setHashForQuery(null);
   };
 
-  let logoSrc = "vosdecisions-logo.png"; // Default for local, relative to public folder
+  let logoSrc = "vosdecisions-logo.png"; 
 
   if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
     const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
     if (owner && repoName) {
-      // Construct absolute URL for GitHub Pages
       logoSrc = `https://${owner}.github.io/${repoName}/vosdecisions-logo.png`;
     }
   } else {
-    // For local development, Next.js handles /public paths correctly.
     logoSrc = "/vosdecisions-logo.png";
   }
 
@@ -51,14 +49,14 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src={logoSrc} // Use the dynamically constructed src
+            src={logoSrc} 
             alt="VOSDECISIONS Logo"
             width={80}
             height={80}
             data-ai-hint="abstract square root database"
           />
         </div>
-        <h1 className="text-4xl font-bold text-primary font-[var(--font-kanit)]">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-primary font-[var(--font-gfs-didot)]">VOSDECISIONS</h1>
       </header>
       
       <div className="w-full max-w-3xl space-y-8 flex-grow">
@@ -117,16 +115,18 @@ export default function HomePage() {
                   <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
                 </Button>
               </CardHeader>
-              <CardContent id="vm-query-tool-content">
-                  <CardDescription className="mb-4 -mt-2">
-                    Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
-                  </CardDescription>
-                  <VmQueryForm
-                    initialArg0={null} 
-                    onInitialArgConsumed={handleInitialArgConsumed}
-                    isAutoMode={false}
-                  />
-              </CardContent>
+              {showVmQueryTool && (
+                <CardContent id="vm-query-tool-content">
+                    <CardDescription className="mb-4 -mt-2">
+                      Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
+                    </CardDescription>
+                    <VmQueryForm
+                      initialArg0={null} 
+                      onInitialArgConsumed={handleInitialArgConsumed}
+                      isAutoMode={false}
+                    />
+                </CardContent>
+              )}
             </Card>
           ) : null
         )}
