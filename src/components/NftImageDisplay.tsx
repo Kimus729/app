@@ -4,10 +4,9 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, ImageOff, ChevronDown, ChevronUp, Code, Film } from 'lucide-react'; // Added Film
+import { AlertCircle, ImageOff, Film } from 'lucide-react'; // Removed ChevronDown, ChevronUp, Code
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Removed Button, Card, CardContent, CardHeader, CardTitle as they were only for raw JSON
 
 interface NftImageDisplayProps {
   nftId: string | null;
@@ -20,9 +19,8 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [imageLoadError, setImageLoadError] = useState<boolean>(false); // Re-using for general media load error
-  const [rawNftApiResponse, setRawNftApiResponse] = useState<any | null>(null);
-  const [showRawJson, setShowRawJson] = useState<boolean>(false);
+  const [mediaLoadError, setMediaLoadError] = useState<boolean>(false);
+  // Removed rawNftApiResponse and showRawJson states
 
   useEffect(() => {
     // Reset states when nftId changes
@@ -30,9 +28,9 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     setMediaType('unknown');
     setIsLoading(false);
     setFetchError(null);
-    setImageLoadError(false);
-    setRawNftApiResponse(null);
-    setShowRawJson(false);
+    setMediaLoadError(false);
+    // Removed rawNftApiResponse reset
+    // Removed setShowRawJson reset
 
     if (!nftId || nftId.startsWith("Error:")) {
       setFetchError(nftId?.startsWith("Error:") ? nftId : "Invalid NFT ID provided for media lookup.");
@@ -43,17 +41,17 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       setIsLoading(true);
       try {
         const response = await fetch(`https://devnet-api.multiversx.com/nfts/${nftId}`);
-        const responseData = await response.json().catch(() => ({})); // Catch potential JSON parse error
-        setRawNftApiResponse(responseData); 
+        const responseData = await response.json().catch(() => ({}));
+        // Removed setRawNftApiResponse(responseData); 
 
         if (!response.ok) {
           throw new Error(`API Error ${response.status}: ${responseData.message || response.statusText}`);
         }
         
-        const data = responseData; // data is now responseData
+        const data = responseData;
         
         let mediaUrl = data.url || data.assets?.url || data.media?.[0]?.url || data.thumbnailUrl || null;
-        let determinedMediaType: 'image' | 'video' = 'image'; // Default to image
+        let determinedMediaType: 'image' | 'video' = 'image';
 
         if (data.media && data.media.length > 0) {
             const mainMediaItem = data.media[0];
@@ -68,14 +66,12 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           if (mediaUrl.startsWith('ipfs://')) {
             mediaUrl = IPFS_GATEWAY + mediaUrl.substring(7);
           }
-           // If type not determined from data.media, check URL extension
           if (determinedMediaType === 'image' && mediaUrl.toLowerCase().endsWith('.mp4')) {
             determinedMediaType = 'video';
           }
           setActualImageUrl(mediaUrl);
           setMediaType(determinedMediaType);
         } else {
-          // Try to fetch from metadata URI if no direct media URL
           if (data.uris && data.uris.length > 0 && typeof data.uris[0] === 'string') {
             let metadataUri = data.uris[0];
             if (metadataUri.startsWith('ipfs://')) {
@@ -91,7 +87,6 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
                     if (mediaUrl.startsWith('ipfs://')) {
                         mediaUrl = IPFS_GATEWAY + mediaUrl.substring(7);
                     }
-                    // Check extension from metadata URL if type not already video
                     if (determinedMediaType === 'image' && mediaUrl.toLowerCase().endsWith('.mp4')) {
                         determinedMediaType = 'video';
                     }
@@ -117,8 +112,8 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     fetchNftMediaUrl();
   }, [nftId]);
 
-  const handleMediaError = () => { // Renamed from handleImageError
-    setImageLoadError(true);
+  const handleMediaError = () => {
+    setMediaLoadError(true);
   };
 
   if (isLoading) {
@@ -136,28 +131,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Media Fetch Error</AlertTitle>
         <AlertDescription>{fetchError}</AlertDescription>
-        {rawNftApiResponse && (
-           <div className="mt-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRawJson(!showRawJson)}
-              className="text-xs"
-            >
-              {showRawJson ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
-              {showRawJson ? 'Hide' : 'Show'} Raw API Error Response
-            </Button>
-            {showRawJson && (
-              <Card className="mt-2">
-                <CardContent className="p-0">
-                  <pre className="mt-1 p-2 text-xs bg-muted rounded-md max-h-60 overflow-auto">
-                    {JSON.stringify(rawNftApiResponse, null, 2)}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+        {/* Raw API Error Response section removed */}
       </Alert>
     );
   }
@@ -168,33 +142,12 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       <div className="mt-4 p-3 flex flex-col items-center justify-center h-48 text-muted-foreground border rounded-lg bg-secondary/10">
         <ImageOff className="h-12 w-12 mb-2" />
         <p className="text-sm">No media to display for this NFT.</p>
-         {rawNftApiResponse && (
-           <div className="mt-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRawJson(!showRawJson)}
-              className="text-xs"
-            >
-              {showRawJson ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
-              {showRawJson ? 'Hide' : 'Show'} Raw API Response
-            </Button>
-            {showRawJson && (
-              <Card className="mt-2">
-                <CardContent className="p-0">
-                  <pre className="mt-1 p-2 text-xs bg-muted rounded-md max-h-60 overflow-auto">
-                    {JSON.stringify(rawNftApiResponse, null, 2)}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+         {/* Raw API Response section removed */}
       </div>
     );
   }
 
-  if (imageLoadError) { 
+  if (mediaLoadError) { 
      return (
       <div className="mt-4 p-3 flex flex-col items-center justify-center text-muted-foreground border rounded-lg">
         <div className="bg-destructive/10 p-3 rounded-md w-full flex flex-col items-center">
@@ -202,59 +155,17 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           <p className="text-sm">Could not load media from URL.</p>
           <p className="text-xs truncate w-full text-center px-2" title={actualImageUrl || "No URL"}>URL: {actualImageUrl || "No URL"}</p>
         </div>
-        {rawNftApiResponse && (
-          <div className="mt-3 w-full">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRawJson(!showRawJson)}
-              className="text-xs w-full"
-            >
-              {showRawJson ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
-              {showRawJson ? 'Hide' : 'Show'} Raw API Response
-            </Button>
-            {showRawJson && (
-              <Card className="mt-2">
-                <CardContent className="p-0">
-                  <pre className="mt-1 p-2 text-xs bg-muted rounded-md max-h-60 overflow-auto">
-                    {JSON.stringify(rawNftApiResponse, null, 2)}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+        {/* Raw API Response section removed */}
       </div>
     );
   }
   
-  if (!actualImageUrl) {
+  if (!actualImageUrl) { // This case might be redundant now with earlier checks, but kept for safety
     return (
       <div className="mt-4 p-3 flex flex-col items-center justify-center h-48 text-muted-foreground border rounded-lg bg-secondary/10">
         <ImageOff className="h-12 w-12 mb-2" />
         <p className="text-sm">No media URL available for this NFT.</p>
-         {rawNftApiResponse && (
-           <div className="mt-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRawJson(!showRawJson)}
-              className="text-xs"
-            >
-              {showRawJson ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
-              {showRawJson ? 'Hide' : 'Show'} Raw API Response
-            </Button>
-            {showRawJson && (
-              <Card className="mt-2">
-                <CardContent className="p-0">
-                  <pre className="mt-1 p-2 text-xs bg-muted rounded-md max-h-60 overflow-auto">
-                    {JSON.stringify(rawNftApiResponse, null, 2)}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+         {/* Raw API Response section removed */}
       </div>
     );
   }
@@ -262,7 +173,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
 
   return (
     <div className="mt-4 p-2 border rounded-lg bg-card/50 flex flex-col justify-center items-center space-y-2">
-      {actualImageUrl && mediaType === 'video' && !imageLoadError && (
+      {actualImageUrl && mediaType === 'video' && !mediaLoadError && (
         <video
           src={actualImageUrl}
           controls
@@ -275,7 +186,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           data-ai-hint="nft video"
         />
       )}
-      {actualImageUrl && mediaType === 'image' && !imageLoadError && (
+      {actualImageUrl && mediaType === 'image' && !mediaLoadError && (
         <Image
           src={actualImageUrl}
           alt={nftId ? `Media for ${nftId}` : 'NFT Media'}
@@ -287,9 +198,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           data-ai-hint="nft image"
         />
       )}
-      <p className="text-xs text-muted-foreground truncate w-full text-center px-2" title={actualImageUrl}>
-        <span className="font-semibold">Source:</span> {actualImageUrl}
-      </p>
+      {/* Media source URL display removed */}
       {fetchError && ( 
         <Alert variant="destructive" className="mt-2 w-full text-xs">
           <AlertCircle className="h-3 w-3" />
@@ -297,36 +206,9 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           <AlertDescription className="text-xs">{fetchError}</AlertDescription>
         </Alert>
       )}
-      {rawNftApiResponse && (
-        <div className="w-full mt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowRawJson(!showRawJson)}
-            className="text-xs w-full flex items-center justify-center"
-          >
-            <Code className="mr-2 h-3 w-3" />
-            {showRawJson ? <ChevronUp className="mr-1 h-3 w-3" /> : <ChevronDown className="mr-1 h-3 w-3" />}
-            {showRawJson ? 'Hide' : 'Show'} Raw NFT API Response
-          </Button>
-          {showRawJson && (
-             <Card className="mt-2 w-full">
-                <CardHeader className="p-2">
-                    <CardTitle className="text-sm">NFT API Full Response</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <pre className="mt-1 p-2 text-xs bg-muted rounded-md max-h-60 overflow-auto">
-                    {JSON.stringify(rawNftApiResponse, null, 2)}
-                    </pre>
-                </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+      {/* Raw NFT API Response section removed */}
     </div>
   );
 };
 
 export default NftImageDisplay;
-
-    
