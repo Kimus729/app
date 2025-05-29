@@ -7,7 +7,7 @@ import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react'; // Removed DatabaseZap
+import { ChevronDown, ChevronUp } from 'lucide-react'; 
 
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
@@ -18,13 +18,13 @@ export default function HomePage() {
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
     setAutoQueryModeActive(true);
-    setShowVmQueryTool(true); // Ensure VM Query tool becomes visible to show results
+    // setShowVmQueryTool(true); // User requested this to be hidden initially even in auto mode.
   };
 
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    setShowVmQueryTool(false); // Hide VM Query tool when file is cleared
+    setShowVmQueryTool(false); 
   };
 
   const handleInitialArgConsumed = () => {
@@ -36,11 +36,11 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src="https://placehold.co/100x100.png" // Placeholder for your logo
+            src="/vosdecisions-logo.png" 
             alt="VOSDECISIONS Logo"
-            width={80} // Adjust width as needed
-            height={80} // Adjust height as needed
-            data-ai-hint="abstract square root database" // Hint for actual image replacement
+            width={80} 
+            height={80} 
+            // data-ai-hint removed as it's now a user-provided logo path
           />
         </div>
         <h1 className="text-4xl font-bold text-primary-foreground font-[var(--font-exo2)]">VOSDECISIONS</h1>
@@ -74,7 +74,7 @@ export default function HomePage() {
         </Card>
 
         {autoQueryModeActive ? (
-          showVmQueryTool && ( 
+          ( 
             <VmQueryForm
               initialArg0={hashForQuery}
               onInitialArgConsumed={handleInitialArgConsumed}
@@ -86,7 +86,6 @@ export default function HomePage() {
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
-                  {/* <DatabaseZap className="h-8 w-8 text-primary" /> // Icon removed as per prior request */}
                   <CardTitle className="text-2xl">VM Query Tool</CardTitle>
                 </div>
                 <Button
