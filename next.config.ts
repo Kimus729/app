@@ -5,18 +5,17 @@ const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 // GITHUB_REPOSITORY is in format owner/repo. We need 'repo'.
 const repoName = process.env.GITHUB_REPOSITORY ? process.env.GITHUB_REPOSITORY.split('/')[1] : 'app';
 
-const assetPrefixPath = isGithubActions ? `/${repoName}/` : undefined; // Should be /app/ for your case
-const basePathPath = isGithubActions ? `/${repoName}` : undefined;   // Should be /app for your case
+const assetPrefixPath = isGithubActions ? `/${repoName}/` : undefined;
+const basePathPath = isGithubActions ? `/${repoName}` : undefined;
 
 const nextConfig: NextConfig = {
   output: 'export', // Crucial for static site generation (GitHub Pages)
-  assetPrefix: assetPrefixPath,
-  basePath: basePathPath,
+  assetPrefix: assetPrefixPath, // For CSS, JS files etc.
+  basePath: basePathPath,       // For routing and public assets including images
   images: {
-    unoptimized: true, // Necessary for static exports with next/image
-    // Tell next/image to use the assetPrefix for image paths
-    // Only set this if assetPrefixPath is defined, otherwise it can cause issues locally
-    path: assetPrefixPath ? assetPrefixPath : (process.env.NODE_ENV === 'development' ? undefined : '/_next/image'),
+    unoptimized: true,      // Serve images as-is, necessary for static exports
+    // `images.path` is typically not used or ignored when `unoptimized` is true.
+    // `basePath` should handle prefixing for images in the /public directory.
     remotePatterns: [
       {
         protocol: 'https',
@@ -32,7 +31,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // No longer exposing NEXT_PUBLIC_GITHUB_ACTIONS, relying on assetPrefix/basePath
 };
 
 export default nextConfig;
