@@ -226,14 +226,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
           }
 
           if (byteArray.length === 0) {
-            // If group[2] (base64 string) is empty, nonce is 0. Represent as "00" for NFT ID.
-            nonceHexForNftId = "00";
+            nonceHexForNftId = "00"; // Nonce 0 is hex "00"
           } else {
             let hexStringFromBytes = "";
             for (let i = 0; i < byteArray.length; i++) {
               hexStringFromBytes += byteArray[i].toString(16).padStart(2, '0');
             }
-            nonceHexForNftId = hexStringFromBytes; // Use the direct hex string
+            nonceHexForNftId = hexStringFromBytes;
           }
         } catch (e) {
           nonceHexForNftId = "ErrorDecodingNonce";
@@ -253,7 +252,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
       return (
         <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
-          <h4 className="text-md font-semibold mb-3 text-accent-foreground bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
+          <h4 className="text-md font-semibold mb-3 text-primary bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
             {groupTitle}
           </h4>
           <ul className="space-y-3">
@@ -262,17 +261,15 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               let hasError = false;
               
               let dataItem; 
-              // Determine which original item from the 7-item group this displayIndex corresponds to
               let originalItemIndexInGroup = -1; 
 
               if (displayIndex === 3) { // This is our new "NFT ID"
                 displayValue = nftIdValue;
                 hasError = nftIdValue.startsWith("Error:");
               } else {
-                // Map displayIndex to the original data index in the 7-item group
-                if (displayIndex < 3) { // Token ID, Token Name, Nonce
+                if (displayIndex < 3) { 
                   originalItemIndexInGroup = displayIndex;
-                } else { // NFT Name, Hash Value, Transaction ID, Timestamp (display indices 4, 5, 6, 7)
+                } else { 
                   originalItemIndexInGroup = displayIndex - 1; 
                 }
                 dataItem = group[originalItemIndexInGroup];
@@ -286,10 +283,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     }
 
                     if (byteArray.length === 0) {
-                      if (originalItemIndexInGroup === 6) { // Timestamp (original index 6)
-                         const date = new Date(0); // Unix epoch
+                      if (originalItemIndexInGroup === 6) { 
+                         const date = new Date(0); 
                          displayValue = date.toLocaleString();
-                      } else if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { // Token ID, Nonce
+                      } else if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { 
                         displayValue = "0";
                       } else { 
                         displayValue = "(empty)";
@@ -300,10 +297,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                         hexString += byteArray[i].toString(16).padStart(2, '0');
                       }
 
-                      if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { // Token ID, Nonce
+                      if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { 
                           const numericValue = BigInt('0x' + hexString);
                           displayValue = numericValue.toString();
-                      } else if (originalItemIndexInGroup === 6) { // Timestamp (original index 6)
+                      } else if (originalItemIndexInGroup === 6) { 
                           const numericValue = BigInt('0x' + hexString);
                           try {
                               const timestampSeconds = Number(numericValue);
@@ -323,9 +320,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                               displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
                               hasError = true;
                           }
-                      } else if (originalItemIndexInGroup === 5) { // Transaction ID (original index 5) -> Mapped to displayIndex 6
+                      } else if (originalItemIndexInGroup === 5) { 
                           displayValue = hexString;
-                      } else { // Token Name (original 1), NFT Name (original 3), Hash Value (original 4)
+                      } else { 
                           try {
                               displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
                               if (displayValue.length === 0 && byteArray.length > 0) { 
@@ -487,7 +484,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         <div className="pt-0"> 
           <Card className="w-full mt-2 shadow-md">
             <CardHeader>
-              <CardTitle className="text-xl text-accent">Blockchain Response</CardTitle>
+              <CardTitle className="text-xl text-primary">Blockchain Response</CardTitle>
             </CardHeader>
             <CardContent>
               {renderDecodedReturnData()}
@@ -503,9 +500,3 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </div>
   );
 }
-
-    
-
-    
-
-    
