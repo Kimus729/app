@@ -204,10 +204,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
                 if (byteArray.length === 0) {
                   if (itemIndexInGroup === 6) { // Timestamp
-                    displayValue = new Date(0).toLocaleString(); // Epoch for timestamp 0
+                    displayValue = new Date(0).toLocaleString(); 
                   } else if (itemIndexInGroup === 0 || itemIndexInGroup === 2) { // Numeric
                     displayValue = "0";
-                  } else { // Textual
+                  } else { 
                     displayValue = "(empty)";
                   }
                 } else {
@@ -227,7 +227,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                               displayValue = `Invalid number for timestamp: ${numericValue.toString()}`;
                               hasError = true;
                           } else {
-                              const date = new Date(timestampSeconds * 1000); // Assumes seconds
+                              const date = new Date(timestampSeconds * 1000); 
                               if (isNaN(date.getTime())) {
                                   displayValue = `Invalid date from timestamp: ${timestampSeconds}`;
                                   hasError = true;
@@ -239,22 +239,23 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                           displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
                           hasError = true;
                       }
-                  } else { // All other elements (2nd, 4th, 5th, 6th): Text/Hex
+                  } else if (itemIndexInGroup === 5) { // 6th element: Transaction ID (Hex)
+                      displayValue = hexString;
+                  } else { // All other elements (2nd, 4th): Text/Hex
                       try {
                           displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
                           if (displayValue.length === 0 && byteArray.length > 0) { 
-                             displayValue = hexString; // Fallback to hex if UTF-8 decodes to empty but data exists
+                             displayValue = hexString; 
                           } else if (displayValue.length === 0 && byteArray.length === 0) {
-                             displayValue = "(empty)"; // Should be handled by outer if, but defensive
+                             displayValue = "(empty)"; 
                           }
                       } catch (utfError) {
-                          // Failed UTF-8 decoding, display as hex
                           if (hexString.length > 128) hexString = hexString.substring(0,128) + "...";
                           displayValue = hexString; 
                       }
                   }
                 }
-              } catch (e) { // Catch for atob error
+              } catch (e) { 
                 displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
                 hasError = true;
               }
@@ -267,7 +268,19 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   <span className="block text-xs font-medium text-muted-foreground mb-1">
                     {itemLabel}
                   </span>
-                  <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
+                  {itemIndexInGroup === 5 && !hasError && displayValue && displayValue !== "(empty)" ? (
+                    <a
+                      href={`https://devnet-explorer.multiversx.com/transactions/${displayValue}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
+                      title={`View transaction ${displayValue} on Devnet Explorer`}
+                    >
+                      {displayValue}
+                    </a>
+                  ) : (
+                    <pre className="text-sm font-mono break-all whitespace-pre-wrap">{displayValue}</pre>
+                  )}
                 </li>
               );
             })}
