@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, GFS_Didot } from 'next/font/google'; // Changed Exo_2 to Kanit, Added GFS_Didot
+import { Inter, Kanit, Genos } from 'next/font/google'; // Removed GFS_Didot, Added Genos
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // For potential toast notifications
 
@@ -17,11 +17,11 @@ const kanit = Kanit({ // Kept Kanit for now, might be removed if not used elsewh
   weight: ['400', '700'], 
 });
 
-const gfsDidot = GFS_Didot({ // Added GFS_Didot
-  variable: '--font-gfs-didot',
-  subsets: ['greek'], // GFS Didot typically supports Greek, check subsets if others needed
+const genos = Genos({ // Added Genos
+  variable: '--font-genos',
+  subsets: ['latin'], 
   display: 'swap',
-  weight: ['400'], 
+  weight: ['400', '700'], // Include weights for normal and bold
 });
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${gfsDidot.variable} font-sans antialiased`}> {/* Updated font variables */}
+      <body className={`${inter.variable} ${kanit.variable} ${genos.variable} font-sans antialiased`}> {/* Updated font variables */}
         {children}
         <Toaster />
       </body>

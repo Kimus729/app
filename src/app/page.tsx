@@ -56,7 +56,7 @@ export default function HomePage() {
             data-ai-hint="abstract square root database"
           />
         </div>
-        <h1 className="text-4xl font-bold text-primary font-[var(--font-gfs-didot)]">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-primary font-[var(--font-genos)]">VOSDECISIONS</h1>
       </header>
       
       <div className="w-full max-w-3xl space-y-8 flex-grow">
