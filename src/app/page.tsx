@@ -6,30 +6,28 @@ import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DatabaseZap, Hash, ChevronDown, ChevronUp } from 'lucide-react';
+import { DatabaseZap, ChevronDown, ChevronUp } from 'lucide-react'; // Removed Hash icon
 
 export default function HomePage() {
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
-  const [showVmQueryTool, setShowVmQueryTool] = useState(false); // manual VM Query Tool card starts hidden
+  const [showVmQueryTool, setShowVmQueryTool] = useState(false); 
   const [hashForQuery, setHashForQuery] = useState<string | null>(null);
   const [autoQueryModeActive, setAutoQueryModeActive] = useState(false);
 
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
     setAutoQueryModeActive(true);
-    setShowVmQueryTool(true); // Ensure VmQueryForm (for results) is rendered
+    setShowVmQueryTool(true); 
   };
 
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    setShowVmQueryTool(false); // Hide the manual VM Query Tool card
+    setShowVmQueryTool(false); 
   };
 
   const handleInitialArgConsumed = () => {
     setHashForQuery(null);
-    // autoQueryModeActive remains true here, so results-only view persists
-    // If we want to switch back to manual mode after results, setAutoQueryModeActive(false) here.
   };
 
   return (
@@ -42,8 +40,8 @@ export default function HomePage() {
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
-              <Hash className="h-8 w-8 text-primary" />
-              <CardTitle className="text-2xl">Load File</CardTitle>
+              {/* Hash icon removed from here */}
+              <CardTitle className="text-2xl">Check File</CardTitle>
             </div>
             <Button
               variant="ghost"
@@ -67,21 +65,14 @@ export default function HomePage() {
         </Card>
 
         {autoQueryModeActive ? (
-          // In autoQueryMode, VmQueryForm is rendered directly if showVmQueryTool is true
-          // (which is set in handleHashCalculated to display results)
           showVmQueryTool && ( 
             <VmQueryForm
               initialArg0={hashForQuery}
               onInitialArgConsumed={handleInitialArgConsumed}
-              isAutoMode={true} // Tells VmQueryForm to only show results/errors
+              isAutoMode={true} 
             />
           )
         ) : (
-          // Manual mode:
-          // The "VM Query Tool" card is only rendered if showVmQueryTool is true.
-          // showVmQueryTool is initially false. It becomes true after an auto-query cycle
-          // (hash calculated -> auto-query -> file cleared -> showVmQueryTool becomes false (new change)).
-          // Or if user manually toggles it.
           showVmQueryTool && (
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -100,15 +91,14 @@ export default function HomePage() {
                   <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
                 </Button>
               </CardHeader>
-              {/* Content is rendered if the card is shown (showVmQueryTool is true) */}
               <CardContent id="vm-query-tool-content">
                  <CardDescription className="mb-4 -mt-2">
                   Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
                 </CardDescription>
                 <VmQueryForm 
-                  initialArg0={null} // In manual mode, no initialArg from file hash
+                  initialArg0={null} 
                   onInitialArgConsumed={handleInitialArgConsumed}
-                  isAutoMode={false} // Tells VmQueryForm to show full form
+                  isAutoMode={false} 
                 />
               </CardContent>
             </Card>
