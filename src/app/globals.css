@@ -9,39 +9,39 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 28%; /* #474747 */
-    --foreground: 0 0% 85%; /* Light grey for text */
+    --background: 0 0% 98%; /* Near white */
+    --foreground: 240 10% 3.9%; /* Dark grey/blue */
 
-    --card: 0 0% 22%; /* Slightly darker card background */
-    --card-foreground: 0 0% 85%; /* Consistent with main foreground */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 240 10% 3.9%; /* Dark grey/blue */
 
-    --popover: 0 0% 20%; /* Darker popover background */
-    --popover-foreground: 0 0% 85%; /* Consistent with main foreground */
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 240 10% 3.9%; /* Dark grey/blue */
 
-    --primary: 210 60% 55%; /* Professional, muted blue */
-    --primary-foreground: 0 0% 95%; /* Very light text on primary */
+    --primary: 221 83% 53%; /* Bright blue */
+    --primary-foreground: 0 0% 98%; /* Near white, for text on primary */
 
-    --secondary: 0 0% 40%; /* Lighter grey for secondary elements */
-    --secondary-foreground: 0 0% 90%; /* Light text on secondary */
+    --secondary: 240 4.8% 95.9%; /* Very light grey */
+    --secondary-foreground: 240 5.9% 10%; /* Dark grey/blue for text on secondary */
 
-    --muted: 0 0% 35%; /* Muted grey */
-    --muted-foreground: 0 0% 65%; /* Medium-light grey text for muted */
+    --muted: 240 4.8% 95.9%; /* Very light grey */
+    --muted-foreground: 240 3.8% 46.1%; /* Medium grey for muted text */
 
-    --accent: 35 80% 60%; /* Warm, not too bright, orange/amber for accents */
-    --accent-foreground: 0 0% 10%; /* Dark text on accent */
+    --accent: 260 70% 60%; /* A pleasant purple for accents */
+    --accent-foreground: 0 0% 98%; /* Near white for text on accent */
 
-    --destructive: 0 70% 50%; /* Clear red for destructive actions */
-    --destructive-foreground: 0 0% 95%; /* Light text on destructive */
+    --destructive: 0 84.2% 60.2%; /* Standard red for destructive actions */
+    --destructive-foreground: 0 0% 98%; /* Near white text on destructive */
 
-    --border: 0 0% 38%; /* Subtle border, slightly lighter than background */
-    --input: 0 0% 38%; /* Input border, consistent with general border */
-    --ring: 210 60% 60%; /* Ring color related to primary blue */
+    --border: 240 5.9% 90%; /* Light grey border */
+    --input: 240 5.9% 90%; /* Light grey input background/border */
+    --ring: 221 83% 53%; /* Ring color related to primary blue */
 
-    --chart-1: 210 60% 55%; /* Blue */
-    --chart-2: 160 50% 50%; /* Teal/Green */
-    --chart-3: 35 80% 60%;  /* Orange/Amber */
-    --chart-4: 260 50% 60%; /* Purple */
-    --chart-5: 0 0% 60%;   /* Medium Gray */
+    --chart-1: 220 70% 50%; /* Brighter Blue */
+    --chart-2: 160 60% 45%; /* Brighter Teal/Green */
+    --chart-3: 40 80% 55%;  /* Brighter Orange/Amber */
+    --chart-4: 280 60% 65%; /* Brighter Purple */
+    --chart-5: 240 5% 65%;   /* Lighter Gray */
     --radius: 0.5rem;
   }
 
@@ -55,7 +55,7 @@ body {
     --popover: 0 0% 20%; /* Darker popover background */
     --popover-foreground: 0 0% 85%; /* Consistent with main foreground */
 
-    --primary: 210 60% 55%; /* Professional, muted blue */
+    --primary: 210 40% 50%; /* Professional, muted blue */
     --primary-foreground: 0 0% 95%; /* Very light text on primary */
 
     --secondary: 0 0% 40%; /* Lighter grey for secondary elements */
@@ -72,7 +72,7 @@ body {
 
     --border: 0 0% 38%; /* Subtle border, slightly lighter than background */
     --input: 0 0% 38%; /* Input border, consistent with general border */
-    --ring: 210 60% 60%; /* Ring color related to primary blue */
+    --ring: 210 40% 55%; /* Ring color related to primary blue */
 
     --chart-1: 210 60% 55%; /* Blue */
     --chart-2: 160 50% 50%; /* Teal/Green */
