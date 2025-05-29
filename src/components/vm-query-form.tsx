@@ -146,13 +146,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       return <p className="text-sm text-muted-foreground">No return items to display.</p>;
     }
 
-    const chunkSize = 7;
+    const chunkSize = 7; // API still returns 7 items per logical NFT entry
     const groupedData: string[][] = [];
     for (let i = 0; i < returnData.length; i += chunkSize) {
       groupedData.push(returnData.slice(i, i + chunkSize));
     }
     
-    const itemLabels = ["Token ID", "Token Name", "Nonce", "NFT Name", "Hash Value", "Transaction ID", "Timestamp"];
+    const itemLabels = ["Token ID", "Token Name", "Nonce", "NFT ID", "NFT Name", "Hash Value", "Transaction ID", "Timestamp"];
 
     return groupedData.map((group, groupIndex) => {
       let groupTitle = `Group ${groupIndex + 1} (Items ${groupIndex * chunkSize + 1} - ${Math.min((groupIndex + 1) * chunkSize, returnData.length)})`;
@@ -183,92 +183,173 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
       }
 
+      // Pre-calculate NFT ID components
+      let tokenNameForNftId = '';
+      let nonceHexForNftId = '';
+      let nftIdValue = '';
+      let nftIdError = '';
+
+      // Get Token Name (from group[1])
+      if (group.length > 1) {
+        try {
+          const binaryString = atob(group[1]);
+          const byteArray = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
+          if (byteArray.length === 0) {
+            tokenNameForNftId = "(empty)";
+          } else {
+            tokenNameForNftId = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+             if (tokenNameForNftId.length === 0 && byteArray.length > 0) { // Fallback to hex if empty after decode
+                let tempHex = "";
+                for (let i = 0; i < byteArray.length; i++) tempHex += byteArray[i].toString(16).padStart(2, '0');
+                tokenNameForNftId = tempHex;
+            }
+          }
+        } catch (e) {
+          tokenNameForNftId = "Error";
+          nftIdError += "Token Name decoding error. ";
+        }
+      } else {
+        nftIdError += "Missing Token Name data for NFT ID. ";
+      }
+
+      // Get Nonce and convert to hex (from group[2])
+      if (group.length > 2) {
+        try {
+          const binaryString = atob(group[2]);
+          const byteArray = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
+          if (byteArray.length === 0) {
+            nonceHexForNftId = "0";
+          } else {
+            let hexString = "";
+            for (let i = 0; i < byteArray.length; i++) hexString += byteArray[i].toString(16).padStart(2, '0');
+            const numericValue = BigInt('0x' + hexString);
+            nonceHexForNftId = numericValue.toString(16);
+          }
+        } catch (e) {
+          nonceHexForNftId = "Error";
+          nftIdError += "Nonce decoding error. ";
+        }
+      } else {
+        nftIdError += "Missing Nonce data for NFT ID. ";
+      }
+      
+      if (!nftIdError.trim()) {
+        nftIdValue = `${tokenNameForNftId}-${nonceHexForNftId}`;
+      } else {
+        nftIdValue = `Error: ${nftIdError}`;
+      }
+
+
       return (
         <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
           <h4 className="text-md font-semibold mb-3 text-accent-foreground bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
             {groupTitle}
           </h4>
           <ul className="space-y-3">
-            {group.map((item: string, itemIndexInGroup: number) => {
-              const originalIndex = groupIndex * chunkSize + itemIndexInGroup;
+            {itemLabels.map((itemLabel, displayIndex) => {
               let displayValue = '';
               let hasError = false;
-              const itemLabel = itemLabels[itemIndexInGroup] || `Item ${itemIndexInGroup + 1}`;
+              // originalItemBase64 is no longer displayed based on previous request
+              
+              let dataItem; // The actual data from the 7-item 'group'
+              let effectiveItemTypeIndex = -1; // Index 0-6 to determine decoding logic for original 7 items
 
-              try {
-                const binaryString = atob(item);
-                const byteArray = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  byteArray[i] = binaryString.charCodeAt(i);
+              if (displayIndex === 3) { // This is our new "NFT ID"
+                displayValue = nftIdValue;
+                hasError = !!nftIdError.trim();
+              } else {
+                // Map displayIndex to the original data index in the 7-item group
+                if (displayIndex < 3) { // Token ID, Token Name, Nonce
+                  dataItem = group[displayIndex];
+                  effectiveItemTypeIndex = displayIndex;
+                } else { // NFT Name, Hash Value, Transaction ID, Timestamp (display indices 4, 5, 6, 7)
+                  dataItem = group[displayIndex - 1]; // Access group[3], group[4], group[5], group[6]
+                  effectiveItemTypeIndex = displayIndex - 1;
                 }
 
-                if (byteArray.length === 0) {
-                  if (itemIndexInGroup === 6) { // Timestamp
-                    displayValue = new Date(0).toLocaleString(); 
-                  } else if (itemIndexInGroup === 0 || itemIndexInGroup === 2) { // Numeric
-                    displayValue = "0";
-                  } else { 
-                    displayValue = "(empty)";
-                  }
-                } else {
-                  let hexString = "";
-                  for (let i = 0; i < byteArray.length; i++) {
-                    hexString += byteArray[i].toString(16).padStart(2, '0');
-                  }
+                if (typeof dataItem !== 'undefined') {
+                  try {
+                    const binaryString = atob(dataItem);
+                    const byteArray = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                      byteArray[i] = binaryString.charCodeAt(i);
+                    }
 
-                  if (itemIndexInGroup === 0 || itemIndexInGroup === 2) { // 1st and 3rd elements: Numeric
-                      const numericValue = BigInt('0x' + hexString);
-                      displayValue = numericValue.toString();
-                  } else if (itemIndexInGroup === 6) { // 7th element: Unix Timestamp
-                      const numericValue = BigInt('0x' + hexString);
-                      try {
-                          const timestampSeconds = Number(numericValue);
-                          if (isNaN(timestampSeconds)) {
-                              displayValue = `Invalid number for timestamp: ${numericValue.toString()}`;
-                              hasError = true;
-                          } else {
-                              const date = new Date(timestampSeconds * 1000); 
-                              if (isNaN(date.getTime())) {
-                                  displayValue = `Invalid date from timestamp: ${timestampSeconds}`;
+                    if (byteArray.length === 0) {
+                      if (effectiveItemTypeIndex === 6) { // Timestamp (original 7th)
+                        displayValue = new Date(0).toLocaleString(); 
+                      } else if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce (original 1st, 3rd)
+                        displayValue = "0";
+                      } else { 
+                        displayValue = "(empty)";
+                      }
+                    } else {
+                      let hexString = "";
+                      for (let i = 0; i < byteArray.length; i++) {
+                        hexString += byteArray[i].toString(16).padStart(2, '0');
+                      }
+
+                      if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce
+                          const numericValue = BigInt('0x' + hexString);
+                          displayValue = numericValue.toString();
+                      } else if (effectiveItemTypeIndex === 6) { // Timestamp (original 7th item)
+                          const numericValue = BigInt('0x' + hexString);
+                          try {
+                              const timestampSeconds = Number(numericValue);
+                              if (isNaN(timestampSeconds)) {
+                                  displayValue = `Invalid number for timestamp: ${numericValue.toString()}`;
                                   hasError = true;
                               } else {
-                                  displayValue = date.toLocaleString();
+                                  const date = new Date(timestampSeconds * 1000); 
+                                  if (isNaN(date.getTime())) {
+                                      displayValue = `Invalid date from timestamp: ${timestampSeconds}`;
+                                      hasError = true;
+                                  } else {
+                                      displayValue = date.toLocaleString();
+                                  }
                               }
+                          } catch (dateError: any) {
+                              displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
+                              hasError = true;
                           }
-                      } catch (dateError: any) {
-                          displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
-                          hasError = true;
-                      }
-                  } else if (itemIndexInGroup === 5) { // 6th element: Transaction ID (Hex)
-                      displayValue = hexString;
-                  } else { // All other elements (2nd, 4th): Text/Hex
-                      try {
-                          displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-                          if (displayValue.length === 0 && byteArray.length > 0) { 
-                             displayValue = hexString; 
-                          } else if (displayValue.length === 0 && byteArray.length === 0) {
-                             displayValue = "(empty)"; 
+                      } else if (effectiveItemTypeIndex === 5) { // Transaction ID (original 6th item)
+                          displayValue = hexString;
+                      } else { // Token Name (original 2nd), NFT Name (original 4th), Hash Value (original 5th)
+                          try {
+                              displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+                              if (displayValue.length === 0 && byteArray.length > 0) { 
+                                 displayValue = hexString; 
+                              } else if (displayValue.length === 0 && byteArray.length === 0) {
+                                 displayValue = "(empty)"; 
+                              }
+                          } catch (utfError) {
+                              if (hexString.length > 128) hexString = hexString.substring(0,128) + "...";
+                              displayValue = hexString; 
                           }
-                      } catch (utfError) {
-                          if (hexString.length > 128) hexString = hexString.substring(0,128) + "...";
-                          displayValue = hexString; 
                       }
+                    }
+                  } catch (e) { 
+                    displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
+                    hasError = true;
                   }
+                } else {
+                  displayValue = "(Data N/A)";
+                  hasError = true;
                 }
-              } catch (e) { 
-                displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
-                hasError = true;
               }
 
               return (
                 <li 
-                  key={originalIndex} 
+                  key={`item-${groupIndex}-${displayIndex}`}
                   className={`p-3 rounded-lg shadow-sm ${hasError ? 'bg-destructive/10 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}
                 >
                   <span className="block text-xs font-medium text-muted-foreground mb-1">
                     {itemLabel}
                   </span>
-                  {itemIndexInGroup === 5 && !hasError && displayValue && displayValue !== "(empty)" ? (
+                  {/* Hyperlink for Transaction ID (displayIndex 6, effectiveItemTypeIndex 5) */}
+                  {(displayIndex === 6 && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)") ? (
                     <a
                       href={`https://devnet-explorer.multiversx.com/transactions/${displayValue}`}
                       target="_blank"
@@ -292,7 +373,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
 
   return (
-    <>
+    <div className="space-y-6"> {/* Replaced outer Card with a div */}
       {!isAutoMode && (
          <div className="space-y-6">
             <form onSubmit={handleSubmit}>
@@ -384,7 +465,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         </div>
       }
       {error && (
-        <div className="p-6 pt-0">
+        <div className="p-6 pt-0"> {/* Ensure padding is consistent */}
           <Alert variant="destructive" className="w-full mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
@@ -406,10 +487,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         </div>
       )}
        {result && !result.data?.data?.returnData && !error && !isLoading && (
-        <div className="p-6 text-center text-muted-foreground">
+        <div className="p-6 text-center text-muted-foreground"> {/* Ensure padding is consistent */}
             {(isAutoMode && !initialArg0) ? "Awaiting file hash for query..." : "No data returned or an issue occurred."}
         </div>
        )}
-    </>
+    </div>
   );
 }
