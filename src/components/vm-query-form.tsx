@@ -263,7 +263,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               let dataItem; 
               let originalItemIndexInGroup = -1; 
 
-              if (displayIndex === 3) { // This is our new "NFT ID"
+              if (displayIndex === 3) { // This is our "NFT ID"
                 displayValue = nftIdValue;
                 hasError = nftIdValue.startsWith("Error:");
               } else {
@@ -361,6 +361,16 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
                       title={`View transaction ${displayValue} on Devnet Explorer`}
+                    >
+                      {displayValue}
+                    </a>
+                  ) : (itemLabel === "NFT ID" && !hasError && displayValue && !displayValue.startsWith("Error") && displayValue !== "(Data N/A)") ? (
+                    <a
+                      href={`https://devnet-explorer.multiversx.com/nfts/${displayValue}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
+                      title={`View NFT ${displayValue} on Devnet Explorer`}
                     >
                       {displayValue}
                     </a>
@@ -500,3 +510,4 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </div>
   );
 }
+
