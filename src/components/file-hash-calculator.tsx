@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'; // Removed CardDescrip
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { UploadCloud, FileText, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { UploadCloud, FileText, XCircle, AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FileHashCalculatorProps {
@@ -78,7 +78,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
       await processFile(droppedFile);
       event.dataTransfer.clearData();
     }
-  }, [processFile]); // Removed 'processFile' from dependency array as it causes infinite loops if not memoized, this function is stable with its current dependencies.
+  }, []); // Removed 'processFile' dependency which was causing issues without memoization of processFile
 
   const handleFileInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -125,6 +125,10 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
             <span className="font-semibold">Click to upload</span> or drag and drop
           </p>
           <p className="text-xs text-muted-foreground">Any file type</p>
+          <div className="flex items-center mt-2 text-xs text-muted-foreground">
+            <ShieldCheck className="h-3 w-3 mr-1 text-green-500" />
+            <span>File processed locally. No data is sent to the web.</span>
+          </div>
           <Input
             id="file-upload-input"
             type="file"
