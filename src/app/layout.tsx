@@ -9,7 +9,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'VM Query Tool',
+  title: 'VOSDECISIONS App',
   description: 'Query MultiversX VM data with ease.',
 };
 
