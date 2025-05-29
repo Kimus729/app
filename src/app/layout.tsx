@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Exo_2 } from 'next/font/google'; // Changed from Playfair_Display
+import { Inter, Kanit, Josefin_Sans } from 'next/font/google'; // Changed Exo_2 to Kanit
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // For potential toast notifications
 
@@ -10,11 +10,18 @@ const inter = Inter({
   display: 'swap',
 });
 
-const exo2 = Exo_2({
-  variable: '--font-exo2',
+const kanit = Kanit({ // Added Kanit
+  variable: '--font-kanit',
   subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '700'], // Include weights you might need
+  weight: ['400', '700'], // Specify weights, 700 for bold
+});
+
+const josefinSans = Josefin_Sans({ // Kept Josefin Sans
+  variable: '--font-josefin-sans',
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400'], 
 });
 
 export const metadata: Metadata = {
@@ -29,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${exo2.variable} font-sans antialiased`}> {/* Updated font variable and base font family */}
+      <body className={`${inter.variable} ${kanit.variable} ${josefinSans.variable} font-sans antialiased`}> {/* Updated font variables */}
         {children}
         <Toaster />
       </body>

@@ -42,8 +42,6 @@ export default function HomePage() {
     }
   } else {
     // For local development, Next.js handles /public paths correctly.
-    // If basePath is set for local dev (it isn't in current config), this might need adjustment
-    // but current config makes basePath undefined locally.
     logoSrc = "/vosdecisions-logo.png";
   }
 
@@ -57,16 +55,19 @@ export default function HomePage() {
             alt="VOSDECISIONS Logo"
             width={80}
             height={80}
+            data-ai-hint="abstract square root database"
           />
         </div>
-        <h1 className="text-4xl font-bold text-primary font-[var(--font-exo2)]">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-primary font-[var(--font-kanit)]">VOSDECISIONS</h1>
+        <p className="mt-2 text-lg text-muted-foreground font-[var(--font-josefin-sans)]">
+          Query MultiversX VM data with ease.
+        </p>
       </header>
       
       <div className="w-full max-w-3xl space-y-8 flex-grow">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
-              {/* Icon removed as per previous request */}
               <CardTitle className="text-2xl">Check File</CardTitle>
             </div>
             <Button
@@ -93,16 +94,14 @@ export default function HomePage() {
         </Card>
 
         {autoQueryModeActive ? (
-          ( // When auto query is active, render VmQueryForm directly for results
             <VmQueryForm
               initialArg0={hashForQuery}
               onInitialArgConsumed={handleInitialArgConsumed}
               isAutoMode={true}
             />
-          )
+          
         ) : (
-          // Only render the manual VM Query Tool Card if showVmQueryTool is true
-          showVmQueryTool && ( 
+          showVmQueryTool ? ( 
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
@@ -111,7 +110,7 @@ export default function HomePage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowVmQueryTool(!showVmQueryTool)} // This button now only toggles its own card's content
+                  onClick={() => setShowVmQueryTool(!showVmQueryTool)} 
                   aria-expanded={showVmQueryTool}
                   aria-controls="vm-query-tool-content"
                   aria-pressed={showVmQueryTool}
@@ -121,20 +120,18 @@ export default function HomePage() {
                   <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
                 </Button>
               </CardHeader>
-              {showVmQueryTool && ( // Content of the manual tool card
-                <CardContent id="vm-query-tool-content">
+              <CardContent id="vm-query-tool-content">
                   <CardDescription className="mb-4 -mt-2">
                     Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
                   </CardDescription>
                   <VmQueryForm
-                    initialArg0={null} // No initialArg for manual mode from here
+                    initialArg0={null} 
                     onInitialArgConsumed={handleInitialArgConsumed}
                     isAutoMode={false}
                   />
-                </CardContent>
-              )}
+              </CardContent>
             </Card>
-          )
+          ) : null
         )}
       </div>
       <footer className="w-full max-w-3xl mt-12 py-8 text-center text-sm text-muted-foreground">
