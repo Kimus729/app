@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
-import NftImageDisplay from './NftImageDisplay'; // Import the new component
+import NftImageDisplay from './NftImageDisplay'; 
 
 interface QueryResult {
   data?: any;
@@ -252,7 +252,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
       return (
         <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
-          <h4 className="text-md font-semibold mb-3 text-primary bg-accent/80 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
+          <h4 className="text-md font-semibold mb-3 text-primary-foreground bg-blue-950 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
             {groupTitle}
           </h4>
           <ul className="space-y-3">
@@ -379,7 +379,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
 
   return (
-     <div className="space-y-6"> 
+    <div className="space-y-6"> 
       {!isAutoMode && (
          <div className="space-y-6">
             <form onSubmit={handleSubmit}>
