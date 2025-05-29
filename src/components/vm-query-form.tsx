@@ -195,60 +195,68 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               let hasError = false;
               const itemLabel = itemLabels[itemIndexInGroup] || `Item ${itemIndexInGroup + 1}`;
 
-
-              if (itemIndexInGroup === 0 || itemIndexInGroup === 2 || itemIndexInGroup === 6) { // 1st, 3rd, 7th
-                try {
-                  const binaryString = atob(item);
-                  const byteArray = new Uint8Array(binaryString.length);
-                  for (let i = 0; i < binaryString.length; i++) {
-                    byteArray[i] = binaryString.charCodeAt(i);
-                  }
-
-                  if (byteArray.length === 0) {
-                    displayValue = "0 (empty data)";
-                  } else {
-                    let hexString = "";
-                    for (let i = 0; i < byteArray.length; i++) {
-                      hexString += byteArray[i].toString(16).padStart(2, '0');
-                    }
-                    const numericValue = BigInt('0x' + (hexString || '0')); 
-                    displayValue = numericValue.toString();
-                  }
-                } catch (e) {
-                  displayValue = `Numeric decoding error: ${e instanceof Error ? e.message : String(e)}`;
-                  hasError = true;
+              try {
+                const binaryString = atob(item);
+                const byteArray = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  byteArray[i] = binaryString.charCodeAt(i);
                 }
-              } else {
-                try {
-                  const binaryString = atob(item);
-                  const byteArray = new Uint8Array(binaryString.length);
-                  for (let i = 0; i < binaryString.length; i++) {
-                    byteArray[i] = binaryString.charCodeAt(i);
+
+                if (byteArray.length === 0) {
+                  if (itemIndexInGroup === 6) { // Timestamp
+                    displayValue = new Date(0).toLocaleString(); // Epoch for timestamp 0
+                  } else if (itemIndexInGroup === 0 || itemIndexInGroup === 2) { // Numeric
+                    displayValue = "0";
+                  } else { // Textual
+                    displayValue = "(empty)";
                   }
-                  
-                  try {
-                    displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-                    if (displayValue.length === 0 && byteArray.length > 0) { 
-                       let hex = "";
-                      for(let i = 0; i < byteArray.length; i++) {
-                        hex += byteArray[i].toString(16).padStart(2, '0');
+                } else {
+                  let hexString = "";
+                  for (let i = 0; i < byteArray.length; i++) {
+                    hexString += byteArray[i].toString(16).padStart(2, '0');
+                  }
+
+                  if (itemIndexInGroup === 0 || itemIndexInGroup === 2) { // 1st and 3rd elements: Numeric
+                      const numericValue = BigInt('0x' + hexString);
+                      displayValue = numericValue.toString();
+                  } else if (itemIndexInGroup === 6) { // 7th element: Unix Timestamp
+                      const numericValue = BigInt('0x' + hexString);
+                      try {
+                          const timestampSeconds = Number(numericValue);
+                          if (isNaN(timestampSeconds)) {
+                              displayValue = `Invalid number for timestamp: ${numericValue.toString()}`;
+                              hasError = true;
+                          } else {
+                              const date = new Date(timestampSeconds * 1000); // Assumes seconds
+                              if (isNaN(date.getTime())) {
+                                  displayValue = `Invalid date from timestamp: ${timestampSeconds}`;
+                                  hasError = true;
+                              } else {
+                                  displayValue = date.toLocaleString();
+                              }
+                          }
+                      } catch (dateError: any) {
+                          displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
+                          hasError = true;
                       }
-                      displayValue = hex;
-                    } else if (displayValue.length === 0 && byteArray.length === 0) {
-                      displayValue = "(empty)";
-                    }
-                  } catch (utfError) {
-                    let hex = "";
-                    for(let i = 0; i < byteArray.length; i++) {
-                      hex += byteArray[i].toString(16).padStart(2, '0');
-                    }
-                    if (displayValue.length > 128) displayValue = displayValue.substring(0,128) + "...";
-                    displayValue = hex || '(empty)';
+                  } else { // All other elements (2nd, 4th, 5th, 6th): Text/Hex
+                      try {
+                          displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
+                          if (displayValue.length === 0 && byteArray.length > 0) { 
+                             displayValue = hexString; // Fallback to hex if UTF-8 decodes to empty but data exists
+                          } else if (displayValue.length === 0 && byteArray.length === 0) {
+                             displayValue = "(empty)"; // Should be handled by outer if, but defensive
+                          }
+                      } catch (utfError) {
+                          // Failed UTF-8 decoding, display as hex
+                          if (hexString.length > 128) hexString = hexString.substring(0,128) + "...";
+                          displayValue = hexString; 
+                      }
                   }
-                } catch (e) {
-                  displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
-                  hasError = true;
                 }
+              } catch (e) { // Catch for atob error
+                displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
+                hasError = true;
               }
 
               return (
