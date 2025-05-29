@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, DM_Serif_Display } from 'next/font/google';
+import { Inter, Kanit } from 'next/font/google'; // Removed DM_Serif_Display
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -17,12 +17,7 @@ const kanit = Kanit({
   weight: ['400', '700'],
 });
 
-const dmSerifDisplay = DM_Serif_Display({
-  variable: '--font-dm-serif-display',
-  subsets: ['latin'],
-  weight: '400', 
-  display: 'swap',
-});
+// Removed DM_Serif_Display instantiation
 
 let faviconHref = '/favicon.png';
 
@@ -49,7 +44,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${dmSerifDisplay.variable} font-sans antialiased`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet" />
+      </head>
+      <body className={`${inter.variable} ${kanit.variable} font-sans antialiased`}>
         {children}
         <Toaster />
       </body>

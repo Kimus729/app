@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -9,6 +10,9 @@ export default {
   ],
   theme: {
   	extend: {
+      fontFamily: {
+        'dm-serif-text': ['"DM Serif Text"', 'serif'],
+      },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
