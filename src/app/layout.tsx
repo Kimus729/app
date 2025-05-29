@@ -1,13 +1,20 @@
 
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google'; // Changed from Playfair_Display
+import { Inter, Exo_2 } from 'next/font/google'; // Changed from Playfair_Display
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // For potential toast notifications
 
-const inter = Inter({ // Changed from playfairDisplay
-  variable: '--font-inter', // New CSS variable
+const inter = Inter({ 
+  variable: '--font-inter', 
   subsets: ['latin'],
   display: 'swap',
+});
+
+const exo2 = Exo_2({
+  variable: '--font-exo2',
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '700'], // Include weights you might need
 });
 
 export const metadata: Metadata = {
@@ -22,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}> {/* Updated font variable and base font family */}
+      <body className={`${inter.variable} ${exo2.variable} font-sans antialiased`}> {/* Updated font variable and base font family */}
         {children}
         <Toaster />
       </body>
