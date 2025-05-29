@@ -27,6 +27,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  env: {
+    NEXT_PUBLIC_GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true' ? 'true' : 'false',
+    NEXT_PUBLIC_GITHUB_REPOSITORY: process.env.GITHUB_REPOSITORY || '', // Pass the full owner/repo string
+  },
 };
 
 export default nextConfig;
