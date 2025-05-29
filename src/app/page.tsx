@@ -40,10 +40,9 @@ export default function HomePage() {
             alt="VOSDECISIONS Logo"
             width={80} 
             height={80} 
-            // data-ai-hint removed as it's now a user-provided logo path
           />
         </div>
-        <h1 className="text-4xl font-bold text-primary-foreground font-[var(--font-exo2)]">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-primary font-[var(--font-exo2)]">VOSDECISIONS</h1>
       </header>
       
       <div className="w-full max-w-3xl space-y-8 flex-grow">
