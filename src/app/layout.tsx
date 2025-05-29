@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { Geist_Mono } from 'next/font/google'; // Use Geist_Mono
+import { Playfair_Display } from 'next/font/google'; // Changed from Geist_Mono
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // For potential toast notifications
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const playfairDisplay = Playfair_Display({ // Changed from geistMono
+  variable: '--font-playfair-display', // New CSS variable
   subsets: ['latin'],
+  display: 'swap', // Optional: Improves font loading behavior
 });
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistMono.variable} font-mono antialiased`}>
+      <body className={`${playfairDisplay.variable} font-serif antialiased`}> {/* Updated font variable and base font family */}
         {children}
         <Toaster />
       </body>

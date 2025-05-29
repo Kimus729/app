@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 body {
-  font-family: var(--font-geist-mono), monospace; /* Ensure monospaced font is primary */
+  font-family: var(--font-playfair-display), serif; /* Ensure Playfair Display is primary, with a generic serif fallback */
 }
 
 @layer base {
