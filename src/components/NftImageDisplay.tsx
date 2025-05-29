@@ -127,7 +127,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
   }
 
   return (
-    <div className="mt-4 p-2 border rounded-lg bg-card/50 flex justify-center items-center">
+    <div className="mt-4 p-2 border rounded-lg bg-card/50 flex flex-col justify-center items-center space-y-2">
       <Image
         src={actualImageUrl}
         alt={nftId ? `Media for ${nftId}` : 'NFT Media'}
@@ -138,6 +138,9 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
         unoptimized={true} 
         data-ai-hint="nft media"
       />
+      <p className="text-xs text-muted-foreground truncate w-full text-center px-2" title={actualImageUrl}>
+        <span className="font-semibold">Source:</span> {actualImageUrl}
+      </p>
     </div>
   );
 };
