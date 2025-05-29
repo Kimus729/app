@@ -24,11 +24,21 @@ const genos = Genos({
   weight: ['400', '700'],
 });
 
+let faviconHref = '/favicon.png'; // Default for local development
+
+if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
+  const [owner, repoName] = process.env.NEXT_PUBLIC_UNDERSCORE_GITHUB_REPOSITORY ? process.env.NEXT_PUBLIC_UNDERSCORE_GITHUB_REPOSITORY.split('/') : process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
+  if (owner && repoName) {
+    faviconHref = `https://${owner}.github.io/${repoName}/favicon.png`;
+  }
+}
+
+
 export const metadata: Metadata = {
   title: 'VOSDECISIONS App',
   description: 'Query MultiversX VM data with ease.',
   icons: {
-    icon: '/favicon.png', // Next.js will handle basePath for this
+    icon: faviconHref,
   },
 };
 
