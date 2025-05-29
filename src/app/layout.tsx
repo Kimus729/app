@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, Exo_2 } from 'next/font/google'; // Ensured DM_Serif_Display is not imported
+import { Inter, Kanit, DM_Serif_Display } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -17,14 +17,14 @@ const kanit = Kanit({
   weight: ['400', '700'],
 });
 
-const exo2 = Exo_2({ 
-  variable: '--font-exo2',
+const dmSerifDisplay = DM_Serif_Display({
+  variable: '--font-dm-serif-display',
   subsets: ['latin'],
-  weight: ['400', '700'], 
+  weight: '400', // DM Serif Display typically has a 400 weight
   display: 'swap',
 });
 
-let faviconHref = '/favicon.png'; 
+let faviconHref = '/favicon.png';
 
 if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
   const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
@@ -49,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${kanit.variable} ${exo2.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${kanit.variable} ${dmSerifDisplay.variable} font-sans antialiased`}>
         {children}
         <Toaster />
       </body>
