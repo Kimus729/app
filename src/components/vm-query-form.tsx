@@ -221,13 +221,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
           
+          for (let i = 0; i < binaryString.length; i++) {
+            byteArray[i] = binaryString.charCodeAt(i);
+          }
+
           if (byteArray.length === 0) {
             // If group[2] (base64 string) is empty, nonce is 0. Represent as "00" for NFT ID.
             nonceHexForNftId = "00";
-            if (group[2].length !== 0) {
-              // Non-empty base64 decoded to empty bytes - unusual. Could warn or error.
-              // Sticking to "00" but this is an edge case.
-            }
           } else {
             let hexStringFromBytes = "";
             for (let i = 0; i < byteArray.length; i++) {
@@ -503,6 +503,8 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </div>
   );
 }
+
+    
 
     
 
