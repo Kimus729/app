@@ -208,33 +208,40 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
           }
         } catch (e) {
           tokenNameForNftId = "ErrorDecodingTokenName";
-          nftIdError += "Token Name decoding error. ";
+          nftIdError += "Token Name decoding error (for NFT ID). ";
         }
       } else {
         tokenNameForNftId = "MissingTokenNameData";
         nftIdError += "Missing Token Name data for NFT ID. ";
       }
 
-      // Get Nonce and convert to hex (from group[2])
+      // Get Nonce and convert to hex (from group[2]) for NFT ID construction
       if (group.length > 2 && typeof group[2] !== 'undefined') {
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
-          let hexString = "";
+          let currentNonceHex = "";
           for (let i = 0; i < byteArray.length; i++) {
-            hexString += byteArray[i].toString(16).padStart(2, '0');
-          }
-          nonceHexForNftId = hexString || "00"; // Ensure at least "00" if byte array was empty after decode
-          if (byteArray.length === 0 && group[2].length > 0) { // if original base64 was not empty but resulted in empty bytes
-             nonceHexForNftId = "ErrorDecodingNonceToBytes";
-             nftIdError += "Nonce base64 decoded to empty bytes. ";
-          } else if(byteArray.length === 0 && group[2].length === 0) {
-             nonceHexForNftId = "00"; // An empty nonce is effectively 0.
+            currentNonceHex += byteArray[i].toString(16).padStart(2, '0');
           }
 
+          if (byteArray.length === 0) {
+            if (group[2].length === 0) { // Base64 was empty, so nonce is 0
+              nonceHexForNftId = "0000"; // Represent 0 as 2 bytes (4 hex chars)
+            } else { // Base64 was not empty but decoded to empty bytes - error
+              nonceHexForNftId = "ErrorDecodingNonceToBytes";
+              nftIdError += "Nonce base64 (for NFT ID) decoded to empty bytes. ";
+            }
+          } else {
+            // Pad the total hex string for the nonce to 4 characters (representing 2 bytes)
+            // If currentNonceHex is "01", it becomes "0001".
+            // If currentNonceHex is "0100", it remains "0100".
+            // If currentNonceHex is longer (e.g. "0abcde"), it remains "0abcde" (padStart won't shorten it).
+            nonceHexForNftId = currentNonceHex.padStart(4, '0');
+          }
         } catch (e) {
           nonceHexForNftId = "ErrorDecodingNonce";
-          nftIdError += "Nonce decoding error. ";
+          nftIdError += "Nonce decoding error (for NFT ID). ";
         }
       } else {
         nonceHexForNftId = "MissingNonceData";
@@ -271,7 +278,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   effectiveItemTypeIndex = displayIndex;
                 } else { // NFT Name, Hash Value, Transaction ID, Timestamp (display indices 4, 5, 6, 7)
                   dataItem = group[displayIndex - 1]; 
-                  effectiveItemTypeIndex = displayIndex - 1;
+                  effectiveItemTypeIndex = displayIndex - 1; // original index in the 7-item group
                 }
 
                 if (typeof dataItem !== 'undefined') {
@@ -379,7 +386,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
 
   return (
-    <div className="space-y-6"> 
+     <div className="space-y-6"> 
       {!isAutoMode && (
          <div className="space-y-6">
             <form onSubmit={handleSubmit}>
