@@ -146,7 +146,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       return <p className="text-sm text-muted-foreground">No return items to display.</p>;
     }
 
-    const chunkSize = 7; // API still returns 7 items per logical NFT entry
+    const chunkSize = 7; 
     const groupedData: string[][] = [];
     for (let i = 0; i < returnData.length; i += chunkSize) {
       groupedData.push(returnData.slice(i, i + chunkSize));
@@ -190,16 +190,16 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       let nftIdError = '';
 
       // Get Token Name (from group[1])
-      if (group.length > 1) {
+      if (group.length > 1 && typeof group[1] !== 'undefined') {
         try {
           const binaryString = atob(group[1]);
           const byteArray = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
+          for (let i = 0; i < byteArray.length; i++) byteArray[i] = binaryString.charCodeAt(i);
           if (byteArray.length === 0) {
             tokenNameForNftId = "(empty)";
           } else {
             tokenNameForNftId = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
-             if (tokenNameForNftId.length === 0 && byteArray.length > 0) { // Fallback to hex if empty after decode
+             if (tokenNameForNftId.length === 0 && byteArray.length > 0) { 
                 let tempHex = "";
                 for (let i = 0; i < byteArray.length; i++) tempHex += byteArray[i].toString(16).padStart(2, '0');
                 tokenNameForNftId = tempHex;
@@ -214,18 +214,17 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       }
 
       // Get Nonce and convert to hex (from group[2])
-      if (group.length > 2) {
+      if (group.length > 2 && typeof group[2] !== 'undefined') {
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
           for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
           if (byteArray.length === 0) {
-            nonceHexForNftId = "0";
+            nonceHexForNftId = "00"; // An empty byte array for nonce is typically 0, hex "00" for one byte.
           } else {
             let hexString = "";
             for (let i = 0; i < byteArray.length; i++) hexString += byteArray[i].toString(16).padStart(2, '0');
-            const numericValue = BigInt('0x' + hexString);
-            nonceHexForNftId = numericValue.toString(16);
+            nonceHexForNftId = hexString; 
           }
         } catch (e) {
           nonceHexForNftId = "Error";
@@ -251,10 +250,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
             {itemLabels.map((itemLabel, displayIndex) => {
               let displayValue = '';
               let hasError = false;
-              // originalItemBase64 is no longer displayed based on previous request
               
-              let dataItem; // The actual data from the 7-item 'group'
-              let effectiveItemTypeIndex = -1; // Index 0-6 to determine decoding logic for original 7 items
+              let dataItem; 
+              let effectiveItemTypeIndex = -1; 
 
               if (displayIndex === 3) { // This is our new "NFT ID"
                 displayValue = nftIdValue;
@@ -265,7 +263,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   dataItem = group[displayIndex];
                   effectiveItemTypeIndex = displayIndex;
                 } else { // NFT Name, Hash Value, Transaction ID, Timestamp (display indices 4, 5, 6, 7)
-                  dataItem = group[displayIndex - 1]; // Access group[3], group[4], group[5], group[6]
+                  dataItem = group[displayIndex - 1]; 
                   effectiveItemTypeIndex = displayIndex - 1;
                 }
 
@@ -278,9 +276,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     }
 
                     if (byteArray.length === 0) {
-                      if (effectiveItemTypeIndex === 6) { // Timestamp (original 7th)
+                      if (effectiveItemTypeIndex === 6) { // Timestamp
                         displayValue = new Date(0).toLocaleString(); 
-                      } else if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce (original 1st, 3rd)
+                      } else if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce
                         displayValue = "0";
                       } else { 
                         displayValue = "(empty)";
@@ -294,7 +292,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                       if (effectiveItemTypeIndex === 0 || effectiveItemTypeIndex === 2) { // Token ID, Nonce
                           const numericValue = BigInt('0x' + hexString);
                           displayValue = numericValue.toString();
-                      } else if (effectiveItemTypeIndex === 6) { // Timestamp (original 7th item)
+                      } else if (effectiveItemTypeIndex === 6) { // Timestamp (7th item in original data)
                           const numericValue = BigInt('0x' + hexString);
                           try {
                               const timestampSeconds = Number(numericValue);
@@ -314,9 +312,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                               displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
                               hasError = true;
                           }
-                      } else if (effectiveItemTypeIndex === 5) { // Transaction ID (original 6th item)
+                      } else if (effectiveItemTypeIndex === 5) { // Transaction ID (6th item in original data)
                           displayValue = hexString;
-                      } else { // Token Name (original 2nd), NFT Name (original 4th), Hash Value (original 5th)
+                      } else { // Token Name, NFT Name, Hash Value
                           try {
                               displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
                               if (displayValue.length === 0 && byteArray.length > 0) { 
@@ -348,8 +346,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   <span className="block text-xs font-medium text-muted-foreground mb-1">
                     {itemLabel}
                   </span>
-                  {/* Hyperlink for Transaction ID (displayIndex 6, effectiveItemTypeIndex 5) */}
-                  {(displayIndex === 6 && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)") ? (
+                  {(displayIndex === 6 && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)") ? ( // This corresponds to the original Transaction ID
                     <a
                       href={`https://devnet-explorer.multiversx.com/transactions/${displayValue}`}
                       target="_blank"
@@ -373,7 +370,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
 
   return (
-    <div className="space-y-6"> {/* Replaced outer Card with a div */}
+    <div className="space-y-6"> 
       {!isAutoMode && (
          <div className="space-y-6">
             <form onSubmit={handleSubmit}>
@@ -465,7 +462,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         </div>
       }
       {error && (
-        <div className="p-6 pt-0"> {/* Ensure padding is consistent */}
+        <div className="p-6 pt-0"> 
           <Alert variant="destructive" className="w-full mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
@@ -487,7 +484,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         </div>
       )}
        {result && !result.data?.data?.returnData && !error && !isLoading && (
-        <div className="p-6 text-center text-muted-foreground"> {/* Ensure padding is consistent */}
+        <div className="p-6 text-center text-muted-foreground"> 
             {(isAutoMode && !initialArg0) ? "Awaiting file hash for query..." : "No data returned or an issue occurred."}
         </div>
        )}
