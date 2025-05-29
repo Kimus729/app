@@ -59,9 +59,6 @@ export default function HomePage() {
           />
         </div>
         <h1 className="text-4xl font-bold text-primary font-[var(--font-kanit)]">VOSDECISIONS</h1>
-        <p className="mt-2 text-lg text-muted-foreground font-[var(--font-josefin-sans)]">
-          Query MultiversX VM data with ease.
-        </p>
       </header>
       
       <div className="w-full max-w-3xl space-y-8 flex-grow">
