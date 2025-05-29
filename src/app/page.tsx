@@ -57,7 +57,7 @@ export default function HomePage() {
             unoptimized={process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true'}
           />
         </div>
-        <h1 className="text-4xl font-bold text-blue-950 font-scope-one">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-bold text-blue-950 font-genos">VOSDECISIONS</h1>
       </header>
 
       <div className="w-full max-w-3xl space-y-8 flex-grow">

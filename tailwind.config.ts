@@ -11,7 +11,7 @@ export default {
   theme: {
   	extend: {
       fontFamily: {
-        'scope-one': ['"Scope One"', 'serif'],
+        'genos': ['"Genos"', 'sans-serif'], // Added Genos
       },
   		colors: {
   			background: 'hsl(var(--background))',
@@ -25,7 +25,7 @@ export default {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
+  				DEFAULT: 'hsl(var(--primary))', // Updated to a darker blue: 221 83% 43%
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
