@@ -7,11 +7,7 @@ import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react'; 
-
-// Determine if running in GitHub Actions environment for path prefixing
-const IS_GITHUB_ACTIONS = process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true';
-const LOGO_PATH = IS_GITHUB_ACTIONS ? '/app/vosdecisions-logo.png' : '/vosdecisions-logo.png';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 
 export default function HomePage() {
@@ -29,11 +25,11 @@ export default function HomePage() {
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    setShowVmQueryTool(false); 
+    setShowVmQueryTool(false);
   };
 
   const handleInitialArgConsumed = () => {
-    setHashForQuery(null); 
+    setHashForQuery(null);
   };
 
   return (
@@ -41,10 +37,10 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-8 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src={LOGO_PATH}
+            src="/vosdecisions-logo.png" // Simplified path, relying on assetPrefix/basePath
             alt="VOSDECISIONS Logo"
-            width={80} 
-            height={80} 
+            width={80}
+            height={80}
           />
         </div>
         <h1 className="text-4xl font-bold text-primary font-[var(--font-exo2)]">VOSDECISIONS</h1>
@@ -71,7 +67,7 @@ export default function HomePage() {
           </CardHeader>
           {showFileHashCalculator && (
             <CardContent id="file-hash-calculator-content">
-              <FileHashCalculator 
+              <FileHashCalculator
                 onHashCalculated={handleHashCalculated}
                 onFileCleared={handleFileCleared}
               />
@@ -80,15 +76,15 @@ export default function HomePage() {
         </Card>
 
         {autoQueryModeActive ? (
-          ( 
+          (
             <VmQueryForm
               initialArg0={hashForQuery}
               onInitialArgConsumed={handleInitialArgConsumed}
-              isAutoMode={true} 
+              isAutoMode={true}
             />
           )
         ) : (
-          showVmQueryTool && ( 
+          showVmQueryTool && (
             <Card className="shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
@@ -107,15 +103,15 @@ export default function HomePage() {
                   <span className="sr-only">{showVmQueryTool ? 'Hide' : 'Show'} VM Query Tool</span>
                 </Button>
               </CardHeader>
-              {showVmQueryTool && ( 
+              {showVmQueryTool && (
                 <CardContent id="vm-query-tool-content">
                   <CardDescription className="mb-4 -mt-2">
                     Enter SC details to query the devnet. Hash from calculator above will auto-fill first argument.
                   </CardDescription>
-                  <VmQueryForm 
-                    initialArg0={null} 
+                  <VmQueryForm
+                    initialArg0={null}
                     onInitialArgConsumed={handleInitialArgConsumed}
-                    isAutoMode={false} 
+                    isAutoMode={false}
                   />
                 </CardContent>
               )}
