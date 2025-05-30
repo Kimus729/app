@@ -11,8 +11,8 @@ export const DEFAULT_LOCALE: Locale = LOCALES.FR;
 export const translations: Record<string, Record<Locale, string>> = {
   // For metadata in layout.tsx
   appMetaTitle: {
-    fr: "VOSDECISIONS", // Changed
-    en: "VOSDECISIONS" // Changed
+    fr: "VOSDECISIONS",
+    en: "VOSDECISIONS"
   },
   appMetaDescription: {
     fr: "Empreinte de fichier sur Blockchain",
@@ -55,8 +55,8 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'Any file type',
   },
   fileHash_processedLocally: {
-    fr: 'Fichier traité localement. Aucune donnée n\'est envoyée sur le web.',
-    en: 'File processed locally. No data is sent to the web.',
+    fr: 'Fichier traité localement. Aucune donnée n\'est envoyée sur le réseau.',
+    en: 'File processed locally. No data is sent to the Network.',
   },
   fileHash_errorTitle: {
     fr: 'Erreur',
