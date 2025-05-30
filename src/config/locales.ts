@@ -151,7 +151,7 @@ export const translations: Record<string, Record<Locale, string>> = {
   vmQuery_nftNameLabel: { fr: 'Nom du NFT', en: 'NFT Name' },
   vmQuery_hashValueLabel: { fr: 'Valeur de l\'empreinte Hash', en: 'Hash Value' },
   vmQuery_transactionIDLabel: { fr: 'ID de la Transaction', en: 'Transaction ID' },
-  vmQuery_timestampLabel: { fr: 'date/heure de l\'écriture', en: 'Timestamp' },
+  vmQuery_timestampLabel: { fr: 'Date/heure de l\'écriture', en: 'Timestamp' },
   vmQuery_viewTransactionTitle: { fr: 'Voir la transaction', en: 'View transaction' },
   vmQuery_viewNFTTitle: { fr: 'Voir le NFT', en: 'View NFT' },
   vmQuery_dataNAText: { fr: '(Donnée N/A)', en: '(Data N/A)' },
