@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit, DM_Serif_Display } from 'next/font/google'; 
+import { Inter, Kanit, DM_Serif_Display } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { EnvironmentProvider } from '@/contexts/EnvironmentContext';
@@ -17,25 +17,29 @@ const kanit = Kanit({
   variable: '--font-kanit',
   subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '700'], 
+  weight: ['400', '700'],
 });
 
 const dmSerifDisplay = DM_Serif_Display({
   variable: '--font-dm-serif-display',
   subsets: ['latin'],
-  weight: ['400'], 
+  weight: ['400'],
   display: 'swap',
 });
-
-// Simplified faviconHref for custom domain.
-// For a custom domain with basePath='', this resolves to /favicon.png
-const faviconHref = '/favicon.png';
 
 export const metadata: Metadata = {
   title: translations.appMetaTitle[DEFAULT_LOCALE],
   description: translations.appMetaDescription[DEFAULT_LOCALE],
   icons: {
-    icon: faviconHref,
+    icon: '/favicon.png', // Default favicon
+    shortcut: '/favicon.png', // For older browsers/IE
+    apple: '/favicon.png', // For Apple touch icon (iOS home screen, Safari tab icon)
+    // You can add more specific sizes if you have them, e.g.:
+    // other: [
+    //   { rel: 'apple-touch-icon-precomposed', url: '/apple-touch-icon.png' }, // Older Apple
+    //   { rel: 'icon', type: 'image/png', sizes: '192x192', url: '/android-chrome-192x192.png' }, // Android
+    //   { rel: 'icon', type: 'image/png', sizes: '512x512', url: '/android-chrome-512x512.png' } // Android
+    // ],
   },
 };
 
@@ -53,7 +57,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${kanit.variable} ${dmSerifDisplay.variable} font-genos antialiased`}>
         <EnvironmentProvider>
-          <LocaleProvider> 
+          <LocaleProvider>
             {children}
           </LocaleProvider>
         </EnvironmentProvider>
