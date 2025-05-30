@@ -25,8 +25,8 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true); // Assuming autoPlay is true
-  const [isMuted, setIsMuted] = useState(true);     // Assuming muted is true by default
+  const [isPlaying, setIsPlaying] = useState(true); 
+  const [isMuted, setIsMuted] = useState(true);     
 
   useEffect(() => {
     setActualImageUrl(null);
@@ -34,8 +34,8 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     setIsLoading(false);
     setFetchError(null);
     setMediaLoadError(false);
-    setIsPlaying(true); // Reset for new media
-    setIsMuted(true);   // Reset for new media
+    setIsPlaying(true); 
+    setIsMuted(true);   
 
     if (!nftId || nftId.startsWith("Error:")) {
       setFetchError(nftId?.startsWith("Error:") ? nftId : "Invalid NFT ID provided for media lookup.");
@@ -140,12 +140,10 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
   };
   
   useEffect(() => {
-    // Sync state if video is auto-muted by browser or other interactions
     const video = videoRef.current;
     if (video) {
       const handleVolumeChange = () => setIsMuted(video.muted);
       video.addEventListener('volumechange', handleVolumeChange);
-      // Set initial state from video element attributes
       setIsPlaying(!video.paused);
       setIsMuted(video.muted);
       return () => {
@@ -215,10 +213,10 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
             ref={videoRef}
             src={actualImageUrl}
             autoPlay
-            muted={isMuted} // Control muted state via component state
+            muted={isMuted} 
             loop
             playsInline
-            className="rounded-md object-contain max-h-60 w-full" // Use w-full for responsiveness within container
+            className="rounded-md object-contain max-h-60 w-full block" 
             onError={handleMediaError}
             onClick={togglePlayPause}
             onPlay={() => setIsPlaying(true)}
@@ -261,4 +259,3 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
 };
 
 export default NftImageDisplay;
-
