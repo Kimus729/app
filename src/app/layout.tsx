@@ -4,9 +4,8 @@ import { Inter, Kanit, DM_Serif_Display } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { EnvironmentProvider } from '@/contexts/EnvironmentContext';
-import { LocaleProvider } from '@/contexts/LocaleContext'; // Import LocaleProvider
+import { LocaleProvider } from '@/contexts/LocaleContext';
 import { translations, DEFAULT_LOCALE } from '@/config/locales';
-
 
 const inter = Inter({
   variable: '--font-inter',
@@ -28,15 +27,9 @@ const dmSerifDisplay = DM_Serif_Display({
   display: 'swap',
 });
 
-
-let faviconHref = '/favicon.png';
-
-if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
-  const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
-  if (owner && repoName) {
-    faviconHref = `https://${owner}.github.io/${repoName}/favicon.png`;
-  }
-}
+// Simplified faviconHref for custom domain.
+// For a custom domain with basePath='', this resolves to /favicon.png
+const faviconHref = '/favicon.png';
 
 export const metadata: Metadata = {
   title: translations.appMetaTitle[DEFAULT_LOCALE],
@@ -58,9 +51,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Genos:ital,wght@0,100..900;1,100..900&family=Scope+One&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${inter.variable} ${kanit.variable} ${dmSerifDisplay.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${kanit.variable} ${dmSerifDisplay.variable} font-genos antialiased`}>
         <EnvironmentProvider>
-          <LocaleProvider> {/* Wrap with LocaleProvider */}
+          <LocaleProvider> 
             {children}
           </LocaleProvider>
         </EnvironmentProvider>

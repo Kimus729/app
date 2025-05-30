@@ -6,15 +6,15 @@ import Image from 'next/image';
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
 import EnvironmentSwitcher from '@/components/EnvironmentSwitcher';
-import LocaleSwitcher from '@/components/LocaleSwitcher'; // Import LocaleSwitcher
+import LocaleSwitcher from '@/components/LocaleSwitcher'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useLocale } from '@/contexts/LocaleContext'; // Import useLocale
+import { useLocale } from '@/contexts/LocaleContext'; 
 
 
 export default function HomePage() {
-  const { t, locale } = useLocale(); // Get t function and current locale
+  const { t, locale } = useLocale(); 
   const [showFileHashCalculator, setShowFileHashCalculator] = useState(true);
   const [showVmQueryTool, setShowVmQueryTool] = useState(false);
   const [hashForQuery, setHashForQuery] = useState<string | null>(null);
@@ -23,6 +23,7 @@ export default function HomePage() {
   const handleHashCalculated = (newHash: string) => {
     setHashForQuery(newHash);
     setAutoQueryModeActive(true);
+    // setShowVmQueryTool(true); // Keep VM Query tool hidden by default on auto-query
   };
 
   const handleFileCleared = () => {
@@ -35,18 +36,10 @@ export default function HomePage() {
     setHashForQuery(null);
   };
 
-  let logoSrc = "/vosdecisions-logo.png";
+  // Simplified logoSrc for custom domain. basePath (if any) handles prefixing.
+  // For a custom domain with basePath='', this resolves to /vosdecisions-logo.png
+  const logoSrc = "/vosdecisions-logo.png";
 
-  if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true' && process.env.NEXT_PUBLIC_GITHUB_REPOSITORY) {
-    const [owner, repoName] = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY.split('/');
-    if (owner && repoName) {
-      logoSrc = `https://${owner}.github.io/${repoName}/vosdecisions-logo.png`;
-    }
-  } else {
-    logoSrc = "/vosdecisions-logo.png";
-  }
-
-  // Dynamically update document lang attribute when locale changes
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
@@ -60,8 +53,8 @@ export default function HomePage() {
       <header className="w-full max-w-3xl mb-12 pt-4 text-center">
         <div className="flex justify-center mb-4">
           <Image
-            src={logoSrc}
-            alt="VOSDECISIONS Logo" // Consider translating if logo has text, or use a generic alt
+            src={logoSrc} 
+            alt="VOSDECISIONS Logo" 
             width={80}
             height={80}
             data-ai-hint="abstract square root database"
@@ -92,7 +85,7 @@ export default function HomePage() {
             </Button>
           </CardHeader>
           {showFileHashCalculator && (
-            <CardContent id="file-hash-calculator-content">
+            <CardContent id="file-hash-calculator-content" className="pt-6">
               <FileHashCalculator
                 onHashCalculated={handleHashCalculated}
                 onFileCleared={handleFileCleared}
@@ -107,7 +100,6 @@ export default function HomePage() {
               onInitialArgConsumed={handleInitialArgConsumed}
               isAutoMode={true}
             />
-
         ) : (
           showVmQueryTool ? (
             <Card className="shadow-lg">

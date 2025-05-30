@@ -2,14 +2,15 @@
 import type {NextConfig} from 'next';
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
-// GITHUB_REPOSITORY is in format owner/repo. We need 'repo'.
-const repoName = process.env.GITHUB_REPOSITORY ? process.env.GITHUB_REPOSITORY.split('/')[1] : 'app';
 
-const basePathValue = isGithubActions ? `/${repoName}` : undefined;
+// For a custom domain pointing to the root of the GitHub Pages site,
+// basePath should be undefined or an empty string.
+// If you were deploying to a subdirectory like kimus729.github.io/app, it would be '/app'.
+const basePathValue = undefined; 
 
 const nextConfig: NextConfig = {
   output: 'export', // Crucial for static site generation (GitHub Pages)
-  basePath: basePathValue,       // For routing and public assets including images
+  basePath: basePathValue,       // Set to undefined or '' for custom root domain
   images: {
     unoptimized: true,      // Serve images as-is, necessary for static exports
     remotePatterns: [
@@ -29,7 +30,9 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true' ? 'true' : 'false',
-    NEXT_PUBLIC_GITHUB_REPOSITORY: process.env.GITHUB_REPOSITORY || '', // Pass the full owner/repo string
+    // GITHUB_REPOSITORY is still useful if you have other logic depending on it,
+    // but not for constructing base paths for assets on a custom root domain.
+    NEXT_PUBLIC_GITHUB_REPOSITORY: process.env.GITHUB_REPOSITORY || '', 
   },
 };
 
