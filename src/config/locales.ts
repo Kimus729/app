@@ -25,7 +25,7 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'VOSDECISIONS', // Assuming brand name stays same, or change as needed
   },
   checkFileTitle: {
-    fr: 'Check File',
+    fr: 'Vérifier Fichier',
     en: 'Check File',
   },
   vmQueryToolTitle: {
@@ -71,7 +71,7 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'Calculating hash...',
   },
   fileHash_sha256Hash: {
-    fr: 'Hash SHA256 :',
+    fr: 'Empreinte Hash SHA256 :',
     en: 'SHA256 Hash:',
   },
   fileHash_noFileSelected: {
@@ -121,7 +121,7 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'Error',
   },
   vmQuery_blockchainResponse: {
-    fr: 'Blockchain Response',
+    fr: 'Réponse Blockchain',
     en: 'Blockchain Response',
   },
   vmQuery_noReturnItems: {
@@ -144,14 +144,14 @@ export const translations: Record<string, Record<Locale, string>> = {
     fr: 'Aucune donnée retournée ou un problème est survenu.',
     en: 'No data returned or an issue occurred.',
   },
-  vmQuery_tokenIDLabel: { fr: 'Token ID', en: 'Token ID' },
-  vmQuery_tokenNameLabel: { fr: 'Token Name', en: 'Token Name' },
+  vmQuery_tokenIDLabel: { fr: 'ID du Jeton', en: 'Token ID' },
+  vmQuery_tokenNameLabel: { fr: 'Nom du Jeton', en: 'Token Name' },
   vmQuery_nonceLabel: { fr: 'Nonce', en: 'Nonce' },
-  vmQuery_nftIDLabel: { fr: 'NFT ID', en: 'NFT ID' },
-  vmQuery_nftNameLabel: { fr: 'NFT Name', en: 'NFT Name' },
-  vmQuery_hashValueLabel: { fr: 'Hash Value', en: 'Hash Value' },
-  vmQuery_transactionIDLabel: { fr: 'Transaction ID', en: 'Transaction ID' },
-  vmQuery_timestampLabel: { fr: 'Timestamp', en: 'Timestamp' },
+  vmQuery_nftIDLabel: { fr: 'ID du NFT', en: 'NFT ID' },
+  vmQuery_nftNameLabel: { fr: 'Nom du NFT', en: 'NFT Name' },
+  vmQuery_hashValueLabel: { fr: 'Valeur de l\'empreinte Hash', en: 'Hash Value' },
+  vmQuery_transactionIDLabel: { fr: 'ID de la Transaction', en: 'Transaction ID' },
+  vmQuery_timestampLabel: { fr: 'date/heure de l\'écriture', en: 'Timestamp' },
   vmQuery_viewTransactionTitle: { fr: 'Voir la transaction', en: 'View transaction' },
   vmQuery_viewNFTTitle: { fr: 'Voir le NFT', en: 'View NFT' },
   vmQuery_dataNAText: { fr: '(Donnée N/A)', en: '(Data N/A)' },
