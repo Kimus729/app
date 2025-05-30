@@ -18,7 +18,7 @@ body {
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 240 10% 3.9%; /* Dark grey/blue */
 
-    --primary: 221 83% 53%; /* Bright blue */
+    --primary: 130 60% 40%; /* Green */
     --primary-foreground: 0 0% 98%; /* Near white, for text on primary */
 
     --secondary: 240 4.8% 95.9%; /* Very light grey */
@@ -35,9 +35,9 @@ body {
 
     --border: 240 5.9% 90%; /* Light grey border */
     --input: 240 5.9% 90%; /* Light grey input background/border */
-    --ring: 221 83% 53%; /* Ring color related to primary blue */
+    --ring: 130 60% 40%; /* Ring color related to primary green */
 
-    --chart-1: 220 70% 50%; /* Brighter Blue */
+    --chart-1: 130 60% 40%; /* Green */
     --chart-2: 160 60% 45%; /* Brighter Teal/Green */
     --chart-3: 40 80% 55%;  /* Brighter Orange/Amber */
     --chart-4: 280 60% 65%; /* Brighter Purple */
@@ -55,7 +55,7 @@ body {
     --popover: 0 0% 20%; /* Darker popover background */
     --popover-foreground: 0 0% 85%; /* Consistent with main foreground */
 
-    --primary: 210 40% 50%; /* Professional, muted blue */
+    --primary: 130 50% 45%; /* Green */
     --primary-foreground: 0 0% 95%; /* Very light text on primary */
 
     --secondary: 0 0% 40%; /* Lighter grey for secondary elements */
@@ -72,9 +72,9 @@ body {
 
     --border: 0 0% 38%; /* Subtle border, slightly lighter than background */
     --input: 0 0% 38%; /* Input border, consistent with general border */
-    --ring: 210 40% 55%; /* Ring color related to primary blue */
+    --ring: 130 50% 45%; /* Ring color related to primary green */
 
-    --chart-1: 210 60% 55%; /* Blue */
+    --chart-1: 130 50% 45%; /* Green */
     --chart-2: 160 50% 50%; /* Teal/Green */
     --chart-3: 35 80% 60%;  /* Orange/Amber */
     --chart-4: 260 50% 60%; /* Purple */

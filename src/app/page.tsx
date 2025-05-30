@@ -36,29 +36,18 @@ export default function HomePage() {
     setHashForQuery(null);
   };
 
-  let logoSrc = "/vosdecisions-logo.png"; // Default for local dev
+  let logoSrc = "/vosdecisions-logo.png"; 
 
-  if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true') {
-    const repoFullName = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY; // e.g., Kimus729/app
-    if (repoFullName) {
-      const [owner, repoName] = repoFullName.split('/');
-      if (repoName) { // Construct path for GitHub Pages subdirectory
-        logoSrc = `/${repoName}/vosdecisions-logo.png`;
-      } else { // Fallback or custom domain root case
-        logoSrc = "/vosdecisions-logo.png";
-      }
-    } else { // Fallback if GITHUB_REPOSITORY is not set
-      logoSrc = "/vosdecisions-logo.png";
-    }
-  }
-  // If on a custom domain pointing to the root of GitHub Pages, basePath in next.config.js handles this.
-  // For vosdecisions.fr which points to the root, next.config.ts sets basePath to "" or undefined
-  // So, logoSrc should be "/vosdecisions-logo.png" for the custom domain.
-  // The above logic is more for when deploying to username.github.io/reponame
-  // For a custom domain setup like vosdecisions.fr, next.config.ts now sets basePath to undefined.
-  // So, the image path should be absolute from the root.
   if (typeof window !== 'undefined' && window.location.hostname === 'vosdecisions.fr') {
     logoSrc = "/vosdecisions-logo.png";
+  } else if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true') {
+    const repoFullName = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY; 
+    if (repoFullName) {
+      const [owner, repoName] = repoFullName.split('/');
+      logoSrc = `/${repoName}/vosdecisions-logo.png`;
+    } else { 
+      logoSrc = "/vosdecisions-logo.png"; 
+    }
   }
 
 
@@ -83,7 +72,7 @@ export default function HomePage() {
             unoptimized={process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true'}
           />
         </div>
-        <h1 className="text-4xl text-blue-950 font-genos font-normal">VOSDECISIONS</h1>
+        <h1 className="text-4xl font-genos font-normal text-green-950">VOSDECISIONS</h1>
       </header>
 
       <div className="w-full max-w-3xl space-y-8 flex-grow">

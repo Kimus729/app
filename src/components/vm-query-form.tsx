@@ -27,7 +27,7 @@ interface VmQueryFormProps {
 
 export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoMode = false }: VmQueryFormProps) {
   const { currentConfig } = useEnvironment();
-  const { t } = useLocale(); // Get t function
+  const { t } = useLocale(); 
   
   const [scAddress, setScAddress] = useState(currentConfig.defaultScAddress);
   const [funcName, setFuncName] = useState(currentConfig.defaultFuncName);
@@ -107,7 +107,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentConfig.gateway, t]);
 
 
@@ -139,7 +138,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArg0, performQuery, scAddress, funcName, t]); 
+  }, [initialArg0, scAddress, funcName, t]); 
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -231,7 +230,9 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
-          for (let i = 0; i < byteArray.length; i++) byteArray[i] = binaryString.charCodeAt(i);
+          for (let i = 0; i < byteArray.length; i++) {
+            byteArray[i] = binaryString.charCodeAt(i);
+          }
 
           if (byteArray.length === 0) {
             nonceHexForNftId = "00"; 
@@ -260,7 +261,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
       return (
         <div key={`group-${groupIndex}`} className="mb-6 p-4 border border-border rounded-lg shadow-sm bg-card/80">
-          <h4 className="text-md font-semibold mb-3 text-primary-foreground bg-blue-950 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
+          <h4 className="text-md font-semibold mb-3 text-primary-foreground bg-green-950 p-2 rounded-md shadow-sm -mt-4 -mx-4 mb-4 rounded-b-none">
             {groupTitle}
           </h4>
           <ul className="space-y-3">
@@ -398,7 +399,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
 
   return (
-    <div className="space-y-6"> 
+    <> 
       {!isAutoMode && (
          <div className="space-y-6">
             <form onSubmit={handleSubmit}>
@@ -517,6 +518,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
             {(isAutoMode && !initialArg0) ? t('vmQuery_awaitingFileHash') : t('vmQuery_noDataOrIssue')}
         </div>
        )}
-    </div>
+    </>
   );
 }
