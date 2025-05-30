@@ -37,9 +37,10 @@ export default function HomePage() {
   };
 
   // Simplified logoSrc logic.
-  // Since next.config.ts handles basePath correctly (basePath: undefined for custom domains),
-  // a simple root-relative path will work. The next/image component resolves this against the basePath.
+  // For custom domains, basePath is undefined in next.config.ts,
+  // so a root-relative path works correctly.
   const logoSrc = "/vosdecisions-logo.png";
+
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -51,7 +52,7 @@ export default function HomePage() {
         <LocaleSwitcher />
         <EnvironmentSwitcher />
       </div>
-      <header className="w-full max-w-3xl mb-8 pt-4 md:pt-8 md:mb-12 text-center">
+      <header className="w-full max-w-3xl mb-6 pt-4 md:pt-8 md:mb-12 text-center">
         <div className="flex justify-center mb-4">
           <Image
             src={logoSrc}
@@ -62,7 +63,7 @@ export default function HomePage() {
             unoptimized={process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true'}
           />
         </div>
-        <h1 className="text-4xl font-genos font-normal text-green-950">VOSDECISIONS</h1>
+        <h1 className="text-3xl md:text-4xl font-genos font-normal text-green-950">VOSDECISIONS</h1>
       </header>
 
       <div className="w-full max-w-3xl space-y-8 flex-grow">

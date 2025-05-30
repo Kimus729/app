@@ -110,7 +110,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
       <CardContent className="space-y-6 pt-6">
         <div
           className={cn(
-            "flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+            "flex flex-col items-center justify-center w-full p-6 sm:p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
             isDragging ? "border-primary bg-primary/10" : "border-border hover:border-accent hover:bg-accent/5",
             error ? "border-destructive bg-destructive/5" : ""
           )}
@@ -122,7 +122,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
           tabIndex={0}
           aria-label={t('fileHash_uploadOrDrag')}
         >
-          <UploadCloud className={cn("h-12 w-12 mb-4", isDragging ? "text-primary" : "text-muted-foreground")} />
+          <UploadCloud className={cn("h-10 w-10 sm:h-12 sm:w-12 mb-4", isDragging ? "text-primary" : "text-muted-foreground")} />
           <p className="mb-2 text-sm text-muted-foreground">
             <span className="font-semibold">{t('fileHash_uploadOrDrag')}</span>
           </p>
