@@ -15,7 +15,7 @@ interface NftImageDisplayProps {
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
 
 const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
-  const { currentUrls } = useEnvironment();
+  const { currentConfig } = useEnvironment(); // Use currentConfig
   const [actualImageUrl, setActualImageUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -37,7 +37,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     const fetchNftMediaUrl = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${currentUrls.api}/nfts/${nftId}`); // Use dynamic API URL
+        const response = await fetch(`${currentConfig.api}/nfts/${nftId}`); // Use dynamic API URL from currentConfig
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
@@ -110,7 +110,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     };
 
     fetchNftMediaUrl();
-  }, [nftId, currentUrls.api]); // Added currentUrls.api dependency
+  }, [nftId, currentConfig.api]); // Dependency on currentConfig.api
 
   const handleMediaError = () => {
     setMediaLoadError(true);
@@ -151,7 +151,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
         <div className="bg-destructive/10 p-3 rounded-md w-full flex flex-col items-center">
           {mediaType === 'video' ? <Film className="h-12 w-12 mb-2 text-destructive" /> : <ImageOff className="h-12 w-12 mb-2 text-destructive" /> }
           <p className="text-sm">Could not load media from URL.</p>
-          <p className="text-xs truncate w-full text-center px-2" title={actualImageUrl || "No URL"}>URL: {actualImageUrl || "No URL"}</p>
+          {/* URL display removed as per user request */}
         </div>
       </div>
     );
@@ -194,6 +194,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           data-ai-hint="nft image"
         />
       )}
+      {/* Raw JSON display removed as per user request */}
       {fetchError && ( 
         <Alert variant="destructive" className="mt-2 w-full text-xs">
           <AlertCircle className="h-3 w-3" />

@@ -1,7 +1,7 @@
 // src/contexts/EnvironmentContext.tsx
 "use client";
 
-import type { EnvironmentKey } from '@/config/environments';
+import type { EnvironmentKey, EnvironmentConfig } from '@/config/environments'; // Import EnvironmentConfig
 import { DEFAULT_ENVIRONMENT, ENVIRONMENTS } from '@/config/environments';
 import type { Dispatch, ReactNode, SetStateAction} from 'react';
 import { createContext, useContext, useState, useMemo } from 'react';
@@ -9,11 +9,7 @@ import { createContext, useContext, useState, useMemo } from 'react';
 interface EnvironmentContextType {
   selectedEnvironment: EnvironmentKey;
   setSelectedEnvironment: Dispatch<SetStateAction<EnvironmentKey>>;
-  currentUrls: {
-    gateway: string;
-    api: string;
-    explorer: string;
-  };
+  currentConfig: EnvironmentConfig; // Changed from currentUrls to currentConfig
 }
 
 const EnvironmentContext = createContext<EnvironmentContextType | undefined>(undefined);
@@ -21,12 +17,12 @@ const EnvironmentContext = createContext<EnvironmentContextType | undefined>(und
 export const EnvironmentProvider = ({ children }: { children: ReactNode }) => {
   const [selectedEnvironment, setSelectedEnvironment] = useState<EnvironmentKey>(DEFAULT_ENVIRONMENT);
 
-  const currentUrls = useMemo(() => {
+  const currentConfig = useMemo(() => { // Changed from currentUrls to currentConfig
     return ENVIRONMENTS[selectedEnvironment];
   }, [selectedEnvironment]);
 
   return (
-    <EnvironmentContext.Provider value={{ selectedEnvironment, setSelectedEnvironment, currentUrls }}>
+    <EnvironmentContext.Provider value={{ selectedEnvironment, setSelectedEnvironment, currentConfig }}>
       {children}
     </EnvironmentContext.Provider>
   );

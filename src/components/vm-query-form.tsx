@@ -25,9 +25,10 @@ interface VmQueryFormProps {
 }
 
 export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoMode = false }: VmQueryFormProps) {
-  const { currentUrls } = useEnvironment();
-  const [scAddress, setScAddress] = useState('erd1qqqqqqqqqqqqqpgq209g5ct99dcyjdxetdykgy92yqf0cnxf0qesc2aw9w');
-  const [funcName, setFuncName] = useState('getPrintInfoFromHash');
+  const { currentConfig } = useEnvironment();
+  
+  const [scAddress, setScAddress] = useState(currentConfig.defaultScAddress);
+  const [funcName, setFuncName] = useState(currentConfig.defaultFuncName);
   const [args, setArgs] = useState<string[]>(['']); 
   
   const [result, setResult] = useState<QueryResult | null>(null);
@@ -40,14 +41,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
   }, [args]);
   
   useEffect(() => {
-    setError(null);
-    setResult(null); // Clear results when environment changes or critical inputs change
-    if (isAutoMode) { 
-        if (!initialArg0) {
-            // setResult(null); // Might clear results too aggressively
-        }
-    }
-  }, [scAddress, funcName, args, isAutoMode, initialArg0, currentUrls]); // Added currentUrls
+    setScAddress(currentConfig.defaultScAddress);
+    setFuncName(currentConfig.defaultFuncName);
+    setResult(null); 
+    setError(null);  
+    // Args are not reset here to allow user to keep typing if they were,
+    // but if initialArg0 is present and autoMode is true, it will be set by another effect.
+  }, [currentConfig]);
 
   const handleArgChange = (index: number, value: string) => {
     const newArgs = [...args];
@@ -84,7 +84,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     }
 
     try {
-      const response = await fetch(`${currentUrls.gateway}/vm-values/query`, { // Use dynamic gateway URL
+      const response = await fetch(`${currentConfig.gateway}/vm-values/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,8 +107,20 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     } finally {
       setIsLoading(false);
     }
-  }, [currentUrls.gateway]); // Added currentUrls.gateway dependency
+  }, [currentConfig.gateway]);
 
+
+  useEffect(() => {
+     // This effect is mainly for reacting to external changes like args, or autoMode state.
+     // Clearing of results/errors due to environment or scAddress/funcName change
+     // is handled by the useEffect that listens to currentConfig.
+    if (isAutoMode && !initialArg0) {
+      // In auto mode, if initialArg0 is cleared (e.g., file cleared),
+      // results/errors should reflect this or be cleared.
+      // The effect listening to currentConfig should have already cleared them
+      // if the environment changed.
+    }
+  }, [args, isAutoMode, initialArg0]);
 
   useEffect(() => {
     if (initialArg0 && initialArg0.trim() !== "") {
@@ -121,6 +133,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         const finalArgs = newArgsArray.filter((arg, index) => arg.trim() !== '' || index === 0 || newArgsArray.length === 1);
         setArgs(finalArgs.length > 0 ? finalArgs : ['']);
 
+        // scAddress and funcName states are updated by the currentConfig effect
         if (scAddress.trim() && funcName.trim()) {
             performQuery(scAddress, funcName, finalArgs.map(a => a.trim()));
         } else {
@@ -132,7 +145,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArg0, performQuery]); // performQuery is now a dependency
+  }, [initialArg0, performQuery, scAddress, funcName]); // Added scAddress, funcName as performQuery relies on their state values.
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -187,13 +200,11 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
       }
 
-      // Pre-calculate NFT ID components
       let tokenNameForNftId = '';
       let nonceHexForNftId = '';
       let nftIdValue = '';
       let nftIdError = '';
 
-      // Get Token Name (from group[1])
       if (group.length > 1 && typeof group[1] !== 'undefined') { 
         try {
           const binaryString = atob(group[1]);
@@ -218,15 +229,11 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         nftIdError += "Missing Token Name data for NFT ID. ";
       }
 
-      // Get Nonce and convert to hex (from group[2]) for NFT ID construction
       if (group.length > 2 && typeof group[2] !== 'undefined') { 
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
-          
-          for (let i = 0; i < binaryString.length; i++) {
-            byteArray[i] = binaryString.charCodeAt(i);
-          }
+          for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
 
           if (byteArray.length === 0) {
             nonceHexForNftId = "00"; 
@@ -359,7 +366,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   </span>
                   {(itemLabel === "Transaction ID" && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)" && !displayValue.startsWith("Error")) ? (
                     <a
-                      href={`${currentUrls.explorer}/transactions/${displayValue}`}
+                      href={`${currentConfig.explorer}/transactions/${displayValue}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
@@ -369,7 +376,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     </a>
                   ) : (itemLabel === "NFT ID" && !hasError && displayValue && !displayValue.startsWith("Error") && displayValue !== "(Data N/A)") ? (
                     <a
-                      href={`${currentUrls.explorer}/nfts/${displayValue}`}
+                      href={`${currentConfig.explorer}/nfts/${displayValue}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
