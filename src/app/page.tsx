@@ -36,20 +36,10 @@ export default function HomePage() {
     setHashForQuery(null);
   };
 
-  let logoSrc = "/vosdecisions-logo.png"; 
-
-  if (typeof window !== 'undefined' && window.location.hostname === 'vosdecisions.fr') {
-    logoSrc = "/vosdecisions-logo.png";
-  } else if (process.env.NEXT_PUBLIC_GITHUB_ACTIONS === 'true') {
-    const repoFullName = process.env.NEXT_PUBLIC_GITHUB_REPOSITORY; 
-    if (repoFullName) {
-      const [owner, repoName] = repoFullName.split('/');
-      logoSrc = `/${repoName}/vosdecisions-logo.png`;
-    } else { 
-      logoSrc = "/vosdecisions-logo.png"; 
-    }
-  }
-
+  // Simplified logoSrc logic.
+  // Since next.config.ts handles basePath correctly (basePath: undefined for custom domains),
+  // a simple root-relative path will work. The next/image component resolves this against the basePath.
+  const logoSrc = "/vosdecisions-logo.png";
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -57,7 +47,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-background">
-      <div className="w-full max-w-3xl flex justify-end items-center space-x-2 mb-4 mt-2 px-1 md:px-0">
+      <div className="w-full flex justify-end items-center space-x-2 mb-4 mt-2">
         <LocaleSwitcher />
         <EnvironmentSwitcher />
       </div>
