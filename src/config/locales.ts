@@ -11,18 +11,18 @@ export const DEFAULT_LOCALE: Locale = LOCALES.FR;
 export const translations: Record<string, Record<Locale, string>> = {
   // For metadata in layout.tsx
   appMetaTitle: {
-    fr: "VOSDECISIONS App",
-    en: "YOURDECISIONS App" // Placeholder, can be refined
+    fr: "VOSDECISIONS", // Changed
+    en: "VOSDECISIONS" // Changed
   },
   appMetaDescription: {
-    fr: "Empreinte de fichier sur Blockchain", // Updated
-    en: "File Fingerprint on Blockchain" // Added corresponding English translation
+    fr: "Empreinte de fichier sur Blockchain",
+    en: "File Fingerprint on Blockchain"
   },
 
   // For page.tsx
   pageTitle: {
     fr: 'VOSDECISIONS',
-    en: 'VOSDECISIONS', // Assuming brand name stays same, or change as needed
+    en: 'VOSDECISIONS',
   },
   checkFileTitle: {
     fr: 'Vérifier Fichier',
@@ -34,7 +34,7 @@ export const translations: Record<string, Record<Locale, string>> = {
   },
   footerCopyright: {
     fr: '© VOSDECISIONS 2025',
-    en: '© VOSDECISIONS 2025', // Assuming brand name stays same
+    en: '© VOSDECISIONS 2025',
   },
   showText: {
     fr: 'Afficher',
