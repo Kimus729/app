@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import NftImageDisplay from './NftImageDisplay'; 
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 
 interface QueryResult {
   data?: any;
@@ -24,6 +25,7 @@ interface VmQueryFormProps {
 }
 
 export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoMode = false }: VmQueryFormProps) {
+  const { currentUrls } = useEnvironment();
   const [scAddress, setScAddress] = useState('erd1qqqqqqqqqqqqqpgq209g5ct99dcyjdxetdykgy92yqf0cnxf0qesc2aw9w');
   const [funcName, setFuncName] = useState('getPrintInfoFromHash');
   const [args, setArgs] = useState<string[]>(['']); 
@@ -39,12 +41,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
   
   useEffect(() => {
     setError(null);
+    setResult(null); // Clear results when environment changes or critical inputs change
     if (isAutoMode) { 
         if (!initialArg0) {
             // setResult(null); // Might clear results too aggressively
         }
     }
-  }, [scAddress, funcName, args, isAutoMode, initialArg0]);
+  }, [scAddress, funcName, args, isAutoMode, initialArg0, currentUrls]); // Added currentUrls
 
   const handleArgChange = (index: number, value: string) => {
     const newArgs = [...args];
@@ -81,7 +84,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     }
 
     try {
-      const response = await fetch('https://devnet-gateway.multiversx.com/vm-values/query', {
+      const response = await fetch(`${currentUrls.gateway}/vm-values/query`, { // Use dynamic gateway URL
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +107,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUrls.gateway]); // Added currentUrls.gateway dependency
 
 
   useEffect(() => {
@@ -129,7 +132,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArg0]); 
+  }, [initialArg0, performQuery]); // performQuery is now a dependency
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -191,7 +194,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       let nftIdError = '';
 
       // Get Token Name (from group[1])
-      if (group.length > 1 && typeof group[1] !== 'undefined') { // Token Name (original index 1)
+      if (group.length > 1 && typeof group[1] !== 'undefined') { 
         try {
           const binaryString = atob(group[1]);
           const byteArray = new Uint8Array(binaryString.length);
@@ -216,7 +219,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       }
 
       // Get Nonce and convert to hex (from group[2]) for NFT ID construction
-      if (group.length > 2 && typeof group[2] !== 'undefined') { // Nonce (original index 2)
+      if (group.length > 2 && typeof group[2] !== 'undefined') { 
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
@@ -226,7 +229,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
           }
 
           if (byteArray.length === 0) {
-            nonceHexForNftId = "00"; // Nonce 0 is hex "00"
+            nonceHexForNftId = "00"; 
           } else {
             let hexStringFromBytes = "";
             for (let i = 0; i < byteArray.length; i++) {
@@ -263,7 +266,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               let dataItem; 
               let originalItemIndexInGroup = -1; 
 
-              if (displayIndex === 3) { // This is our "NFT ID"
+              if (displayIndex === 3) { 
                 displayValue = nftIdValue;
                 hasError = nftIdValue.startsWith("Error:");
               } else {
@@ -356,21 +359,21 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   </span>
                   {(itemLabel === "Transaction ID" && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)" && !displayValue.startsWith("Error")) ? (
                     <a
-                      href={`https://devnet-explorer.multiversx.com/transactions/${displayValue}`}
+                      href={`${currentUrls.explorer}/transactions/${displayValue}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
-                      title={`View transaction ${displayValue} on Devnet Explorer`}
+                      title={`View transaction ${displayValue} on Explorer`}
                     >
                       {displayValue}
                     </a>
                   ) : (itemLabel === "NFT ID" && !hasError && displayValue && !displayValue.startsWith("Error") && displayValue !== "(Data N/A)") ? (
                     <a
-                      href={`https://devnet-explorer.multiversx.com/nfts/${displayValue}`}
+                      href={`${currentUrls.explorer}/nfts/${displayValue}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
-                      title={`View NFT ${displayValue} on Devnet Explorer`}
+                      title={`View NFT ${displayValue} on Explorer`}
                     >
                       {displayValue}
                     </a>
@@ -510,4 +513,3 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     </div>
   );
 }
-

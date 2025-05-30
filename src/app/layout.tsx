@@ -1,8 +1,9 @@
 
 import type { Metadata } from 'next';
-import { Inter, Kanit } from 'next/font/google'; // Removed DM_Serif_Display, Exo_2, DM_Serif_Text, Scope_One
+import { Inter, Kanit, DM_Serif_Display } from 'next/font/google'; 
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import { EnvironmentProvider } from '@/contexts/EnvironmentContext';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -14,8 +15,16 @@ const kanit = Kanit({
   variable: '--font-kanit',
   subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '700'],
+  weight: ['400', '700'], // It's good to specify weights you'll use
 });
+
+const dmSerifDisplay = DM_Serif_Display({
+  variable: '--font-dm-serif-display',
+  subsets: ['latin'],
+  weight: ['400'], // DM Serif Display typically only has 400
+  display: 'swap',
+});
+
 
 let faviconHref = '/favicon.png';
 
@@ -47,8 +56,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Genos:ital,wght@0,100..900;1,100..900&family=Scope+One&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${inter.variable} ${kanit.variable} font-sans antialiased`}>
-        {children}
+      <body className={`${inter.variable} ${kanit.variable} ${dmSerifDisplay.variable} font-sans antialiased`}>
+        <EnvironmentProvider>
+          {children}
+        </EnvironmentProvider>
         <Toaster />
       </body>
     </html>

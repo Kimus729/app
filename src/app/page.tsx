@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import VmQueryForm from '@/components/vm-query-form';
 import FileHashCalculator from '@/components/file-hash-calculator';
+import EnvironmentSwitcher from '@/components/EnvironmentSwitcher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -25,7 +26,7 @@ export default function HomePage() {
   const handleFileCleared = () => {
     setHashForQuery(null);
     setAutoQueryModeActive(false);
-    setShowVmQueryTool(false);
+    setShowVmQueryTool(false); 
   };
 
   const handleInitialArgConsumed = () => {
@@ -46,7 +47,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-background">
-      <header className="w-full max-w-3xl mb-12 pt-8 text-center">
+      <div className="w-full max-w-5xl flex justify-end mb-2 mt-2 pr-2 md:pr-0">
+        <EnvironmentSwitcher />
+      </div>
+      <header className="w-full max-w-3xl mb-12 pt-4 text-center">
         <div className="flex justify-center mb-4">
           <Image
             src={logoSrc}
