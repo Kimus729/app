@@ -2,11 +2,12 @@
 "use client";
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, ImageOff, Film } from 'lucide-react';
+import { AlertCircle, ImageOff, Film, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { Button } from '@/components/ui/button';
 
 interface NftImageDisplayProps {
   nftId: string | null;
@@ -15,12 +16,17 @@ interface NftImageDisplayProps {
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
 
 const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
-  const { currentConfig } = useEnvironment(); // Use currentConfig
+  const { currentConfig } = useEnvironment();
   const [actualImageUrl, setActualImageUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [mediaLoadError, setMediaLoadError] = useState<boolean>(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true); // Assuming autoPlay is true
+  const [isMuted, setIsMuted] = useState(true);     // Assuming muted is true by default
 
   useEffect(() => {
     setActualImageUrl(null);
@@ -28,6 +34,8 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     setIsLoading(false);
     setFetchError(null);
     setMediaLoadError(false);
+    setIsPlaying(true); // Reset for new media
+    setIsMuted(true);   // Reset for new media
 
     if (!nftId || nftId.startsWith("Error:")) {
       setFetchError(nftId?.startsWith("Error:") ? nftId : "Invalid NFT ID provided for media lookup.");
@@ -37,7 +45,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     const fetchNftMediaUrl = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${currentConfig.api}/nfts/${nftId}`); // Use dynamic API URL from currentConfig
+        const response = await fetch(`${currentConfig.api}/nfts/${nftId}`);
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
@@ -47,7 +55,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
         const data = responseData;
         
         let mediaUrl = data.url || data.assets?.url || data.media?.[0]?.url || data.thumbnailUrl || null;
-        let determinedMediaType: 'image' | 'video' = 'image'; // Default to image
+        let determinedMediaType: 'image' | 'video' = 'image'; 
 
         if (data.media && data.media.length > 0) {
             const mainMediaItem = data.media[0];
@@ -62,14 +70,12 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           if (mediaUrl.startsWith('ipfs://')) {
             mediaUrl = IPFS_GATEWAY + mediaUrl.substring(7);
           }
-          // If API didn't specify video, but URL ends with .mp4, assume video
           if (determinedMediaType === 'image' && mediaUrl.toLowerCase().endsWith('.mp4')) {
             determinedMediaType = 'video';
           }
           setActualImageUrl(mediaUrl);
           setMediaType(determinedMediaType);
         } else {
-          // Fallback to fetching metadata from URIs if no direct media URL
           if (data.uris && data.uris.length > 0 && typeof data.uris[0] === 'string') {
             let metadataUri = data.uris[0];
             if (metadataUri.startsWith('ipfs://')) {
@@ -80,13 +86,11 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
                 if (!metaResponse.ok) throw new Error(`Metadata URI Error ${metaResponse.status}: ${metaResponse.statusText}`);
                 const metaData = await metaResponse.json();
                 
-                // Check various common fields for media URL in metadata
                 mediaUrl = metaData.image || metaData.image_url || metaData.animation_url || metaData.media?.url;
                 if (mediaUrl && typeof mediaUrl === 'string') {
                     if (mediaUrl.startsWith('ipfs://')) {
                         mediaUrl = IPFS_GATEWAY + mediaUrl.substring(7);
                     }
-                    // If API didn't specify video, but metadata URL ends with .mp4, assume video
                     if (determinedMediaType === 'image' && mediaUrl.toLowerCase().endsWith('.mp4')) {
                         determinedMediaType = 'video';
                     }
@@ -110,11 +114,46 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     };
 
     fetchNftMediaUrl();
-  }, [nftId, currentConfig.api]); // Dependency on currentConfig.api
+  }, [nftId, currentConfig.api]);
 
   const handleMediaError = () => {
     setMediaLoadError(true);
   };
+
+  const togglePlayPause = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused || videoRef.current.ended) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
+  
+  useEffect(() => {
+    // Sync state if video is auto-muted by browser or other interactions
+    const video = videoRef.current;
+    if (video) {
+      const handleVolumeChange = () => setIsMuted(video.muted);
+      video.addEventListener('volumechange', handleVolumeChange);
+      // Set initial state from video element attributes
+      setIsPlaying(!video.paused);
+      setIsMuted(video.muted);
+      return () => {
+        video.removeEventListener('volumechange', handleVolumeChange);
+      };
+    }
+  }, [mediaType, actualImageUrl]);
+
 
   if (isLoading) {
     return (
@@ -135,7 +174,6 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     );
   }
 
-
   if (!actualImageUrl && !fetchError) { 
      return (
       <div className="mt-4 p-3 flex flex-col items-center justify-center h-48 text-muted-foreground border rounded-lg bg-secondary/10">
@@ -151,7 +189,6 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
         <div className="bg-destructive/10 p-3 rounded-md w-full flex flex-col items-center">
           {mediaType === 'video' ? <Film className="h-12 w-12 mb-2 text-destructive" /> : <ImageOff className="h-12 w-12 mb-2 text-destructive" /> }
           <p className="text-sm">Could not load media from URL.</p>
-          {/* URL display removed as per user request */}
         </div>
       </div>
     );
@@ -166,21 +203,39 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     );
   }
 
-
   return (
-    <div className="mt-4 p-2 border rounded-lg bg-card/50 flex flex-col justify-center items-center space-y-2">
+    <div 
+      className="mt-4 p-2 border rounded-lg bg-card/50 flex flex-col justify-center items-center space-y-2 relative"
+      onMouseEnter={() => mediaType === 'video' && setIsHovering(true)}
+      onMouseLeave={() => mediaType === 'video' && setIsHovering(false)}
+    >
       {actualImageUrl && mediaType === 'video' && !mediaLoadError && (
-        <video
-          src={actualImageUrl}
-          controls
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="rounded-md object-contain max-h-60 w-auto"
-          onError={handleMediaError}
-          data-ai-hint="nft video"
-        />
+        <div className="relative w-full max-w-md mx-auto"> {/* Max width for video container */}
+          <video
+            ref={videoRef}
+            src={actualImageUrl}
+            autoPlay
+            muted={isMuted} // Control muted state via component state
+            loop
+            playsInline
+            className="rounded-md object-contain max-h-60 w-full" // Use w-full for responsiveness within container
+            onError={handleMediaError}
+            onClick={togglePlayPause}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            data-ai-hint="nft video"
+          />
+          {isHovering && (
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 flex items-center justify-center space-x-3 transition-opacity duration-300">
+              <Button variant="ghost" size="icon" onClick={togglePlayPause} className="text-white hover:text-gray-300">
+                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:text-gray-300">
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              </Button>
+            </div>
+          )}
+        </div>
       )}
       {actualImageUrl && mediaType === 'image' && !mediaLoadError && (
         <Image
@@ -194,7 +249,6 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
           data-ai-hint="nft image"
         />
       )}
-      {/* Raw JSON display removed as per user request */}
       {fetchError && ( 
         <Alert variant="destructive" className="mt-2 w-full text-xs">
           <AlertCircle className="h-3 w-3" />
@@ -207,3 +261,4 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
 };
 
 export default NftImageDisplay;
+
