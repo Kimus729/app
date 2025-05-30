@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlusCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import NftImageDisplay from './NftImageDisplay'; 
 import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { useLocale } from '@/contexts/LocaleContext'; // Import useLocale
 
 interface QueryResult {
   data?: any;
@@ -26,6 +27,7 @@ interface VmQueryFormProps {
 
 export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoMode = false }: VmQueryFormProps) {
   const { currentConfig } = useEnvironment();
+  const { t } = useLocale(); // Get t function
   
   const [scAddress, setScAddress] = useState(currentConfig.defaultScAddress);
   const [funcName, setFuncName] = useState(currentConfig.defaultFuncName);
@@ -45,8 +47,6 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     setFuncName(currentConfig.defaultFuncName);
     setResult(null); 
     setError(null);  
-    // Args are not reset here to allow user to keep typing if they were,
-    // but if initialArg0 is present and autoMode is true, it will be set by another effect.
   }, [currentConfig]);
 
   const handleArgChange = (index: number, value: string) => {
@@ -78,7 +78,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
     };
 
     if (!payload.scAddress || !payload.funcName) {
-        setError("Smart Contract Address and Function Name are required.");
+        setError(t('vmQuery_scAddressAndFuncNameRequiredError'));
         setIsLoading(false);
         return;
     }
@@ -96,29 +96,24 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       const responseData: QueryResult = await response.json();
 
       if (!response.ok || responseData.error) {
-        setError(responseData.error || `API Error: ${responseData.data?.returnMessage || responseData.returnMessage || response.statusText}`);
+        setError(responseData.error || `${t('vmQuery_errorTitle')}: ${responseData.data?.returnMessage || responseData.returnMessage || response.statusText}`);
         setResult(responseData);
       } else {
         setResult(responseData);
       }
     } catch (e: any) {
       console.error("Query Error:", e);
-      setError(e.message || 'An unexpected error occurred.');
+      setError(e.message || t('vmQuery_noDataOrIssue'));
     } finally {
       setIsLoading(false);
     }
-  }, [currentConfig.gateway]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentConfig.gateway, t]);
 
 
   useEffect(() => {
-     // This effect is mainly for reacting to external changes like args, or autoMode state.
-     // Clearing of results/errors due to environment or scAddress/funcName change
-     // is handled by the useEffect that listens to currentConfig.
     if (isAutoMode && !initialArg0) {
-      // In auto mode, if initialArg0 is cleared (e.g., file cleared),
-      // results/errors should reflect this or be cleared.
-      // The effect listening to currentConfig should have already cleared them
-      // if the environment changed.
+      // Handled by currentConfig effect
     }
   }, [args, isAutoMode, initialArg0]);
 
@@ -133,11 +128,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         const finalArgs = newArgsArray.filter((arg, index) => arg.trim() !== '' || index === 0 || newArgsArray.length === 1);
         setArgs(finalArgs.length > 0 ? finalArgs : ['']);
 
-        // scAddress and funcName states are updated by the currentConfig effect
         if (scAddress.trim() && funcName.trim()) {
             performQuery(scAddress, funcName, finalArgs.map(a => a.trim()));
         } else {
-             setError("Cannot auto-query: Smart Contract Address or Function Name is missing. Please fill them and submit manually or re-upload the file.");
+             setError(t('vmQuery_cannotAutoQueryError'));
         }
 
         if (onInitialArgConsumed) {
@@ -145,7 +139,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialArg0, performQuery, scAddress, funcName]); // Added scAddress, funcName as performQuery relies on their state values.
+  }, [initialArg0, performQuery, scAddress, funcName, t]); 
 
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -160,7 +154,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
 
     const returnData = result.data.data.returnData;
     if (returnData.length === 0) {
-      return <p className="text-sm text-muted-foreground">No return items to display.</p>;
+      return <p className="text-sm text-muted-foreground">{t('vmQuery_noReturnItems')}</p>;
     }
 
     const chunkSize = 7; 
@@ -169,10 +163,14 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       groupedData.push(returnData.slice(i, i + chunkSize));
     }
     
-    const itemLabels = ["Token ID", "Token Name", "Nonce", "NFT ID", "NFT Name", "Hash Value", "Transaction ID", "Timestamp"];
+    const itemLabels = [
+      t('vmQuery_tokenIDLabel'), t('vmQuery_tokenNameLabel'), t('vmQuery_nonceLabel'), 
+      t('vmQuery_nftIDLabel'), t('vmQuery_nftNameLabel'), t('vmQuery_hashValueLabel'), 
+      t('vmQuery_transactionIDLabel'), t('vmQuery_timestampLabel')
+    ];
 
     return groupedData.map((group, groupIndex) => {
-      let groupTitle = `Group ${groupIndex + 1} (Items ${groupIndex * chunkSize + 1} - ${Math.min((groupIndex + 1) * chunkSize, returnData.length)})`;
+      let groupTitle = `${t('vmQuery_groupTitleFallback')} ${groupIndex + 1} (${t('vmQuery_itemsFallback')} ${groupIndex * chunkSize + 1} - ${Math.min((groupIndex + 1) * chunkSize, returnData.length)})`;
 
       if (group && group.length > 1 && group[1]) { 
         const secondItemBase64 = group[1];
@@ -211,7 +209,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
           const byteArray = new Uint8Array(binaryString.length);
           for (let i = 0; i < byteArray.length; i++) byteArray[i] = binaryString.charCodeAt(i);
           if (byteArray.length === 0) {
-            tokenNameForNftId = "(empty)";
+            tokenNameForNftId = t('vmQuery_emptyText');
           } else {
             tokenNameForNftId = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
              if (tokenNameForNftId.length === 0 && byteArray.length > 0) { 
@@ -221,19 +219,19 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
             }
           }
         } catch (e) {
-          tokenNameForNftId = "ErrorDecodingTokenName";
-          nftIdError += `Token Name decoding error (for NFT ID): ${e instanceof Error ? e.message : String(e)}. `;
+          tokenNameForNftId = t('vmQuery_errorDecodingTokenNameText');
+          nftIdError += `${t('vmQuery_errorDecodingTokenNameText')} (for NFT ID): ${e instanceof Error ? e.message : String(e)}. `;
         }
       } else {
-        tokenNameForNftId = "MissingTokenNameData";
-        nftIdError += "Missing Token Name data for NFT ID. ";
+        tokenNameForNftId = t('vmQuery_missingTokenNameDataText');
+        nftIdError += `${t('vmQuery_missingTokenNameDataText')} for NFT ID. `;
       }
 
       if (group.length > 2 && typeof group[2] !== 'undefined') { 
         try {
           const binaryString = atob(group[2]);
           const byteArray = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) byteArray[i] = binaryString.charCodeAt(i);
+          for (let i = 0; i < byteArray.length; i++) byteArray[i] = binaryString.charCodeAt(i);
 
           if (byteArray.length === 0) {
             nonceHexForNftId = "00"; 
@@ -245,18 +243,18 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
             nonceHexForNftId = hexStringFromBytes;
           }
         } catch (e) {
-          nonceHexForNftId = "ErrorDecodingNonce";
-          nftIdError += `Nonce decoding error (for NFT ID): ${e instanceof Error ? e.message : String(e)}. `;
+          nonceHexForNftId = t('vmQuery_errorDecodingNonceText');
+          nftIdError += `${t('vmQuery_errorDecodingNonceText')} (for NFT ID): ${e instanceof Error ? e.message : String(e)}. `;
         }
       } else {
-        nonceHexForNftId = "MissingNonceData";
-        nftIdError += "Missing Nonce data for NFT ID. ";
+        nonceHexForNftId = t('vmQuery_missingNonceDataText');
+        nftIdError += `${t('vmQuery_missingNonceDataText')} for NFT ID. `;
       }
       
-      if (!nftIdError.trim() && tokenNameForNftId && nonceHexForNftId && !tokenNameForNftId.startsWith("Error") && !nonceHexForNftId.startsWith("Error")) {
+      if (!nftIdError.trim() && tokenNameForNftId && nonceHexForNftId && !tokenNameForNftId.startsWith(t('vmQuery_errorDecodingTokenNameText')) && !nonceHexForNftId.startsWith(t('vmQuery_errorDecodingNonceText'))) {
         nftIdValue = `${tokenNameForNftId}-${nonceHexForNftId}`;
       } else {
-        nftIdValue = `Error: Could not construct NFT ID. ${nftIdError}`;
+        nftIdValue = `${t('vmQuery_couldNotConstructNftIdText')} ${nftIdError}`;
       }
 
 
@@ -273,13 +271,14 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
               let dataItem; 
               let originalItemIndexInGroup = -1; 
 
-              if (displayIndex === 3) { 
+              if (displayIndex === 3) { // NFT ID (Calculated)
                 displayValue = nftIdValue;
-                hasError = nftIdValue.startsWith("Error:");
+                hasError = nftIdValue.startsWith(t('vmQuery_errorTitle') + ":") || nftIdValue.startsWith(t('vmQuery_couldNotConstructNftIdText'));
               } else {
-                if (displayIndex < 3) { 
+                // Adjust index to fetch from original group (0-6)
+                if (displayIndex < 3) { // Token ID, Token Name, Nonce
                   originalItemIndexInGroup = displayIndex;
-                } else { 
+                } else { // NFT Name, Hash Value, Transaction ID, Timestamp
                   originalItemIndexInGroup = displayIndex - 1; 
                 }
                 dataItem = group[originalItemIndexInGroup];
@@ -293,13 +292,13 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     }
 
                     if (byteArray.length === 0) {
-                      if (originalItemIndexInGroup === 6) { 
+                      if (originalItemIndexInGroup === 6) { // Timestamp
                          const date = new Date(0); 
                          displayValue = date.toLocaleString();
-                      } else if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { 
+                      } else if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { // Token ID, Nonce
                         displayValue = "0";
                       } else { 
-                        displayValue = "(empty)";
+                        displayValue = t('vmQuery_emptyText');
                       }
                     } else {
                       let hexString = "";
@@ -307,38 +306,38 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                         hexString += byteArray[i].toString(16).padStart(2, '0');
                       }
 
-                      if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { 
+                      if (originalItemIndexInGroup === 0 || originalItemIndexInGroup === 2) { // Token ID, Nonce
                           const numericValue = BigInt('0x' + hexString);
                           displayValue = numericValue.toString();
-                      } else if (originalItemIndexInGroup === 6) { 
+                      } else if (originalItemIndexInGroup === 6) { // Timestamp
                           const numericValue = BigInt('0x' + hexString);
                           try {
                               const timestampSeconds = Number(numericValue);
                               if (isNaN(timestampSeconds)) {
-                                  displayValue = `Invalid number for timestamp: ${numericValue.toString()}`;
+                                  displayValue = `${t('vmQuery_invalidNumberForTimestampText')} ${numericValue.toString()}`;
                                   hasError = true;
                               } else {
                                   const date = new Date(timestampSeconds * 1000); 
                                   if (isNaN(date.getTime())) {
-                                      displayValue = `Invalid date from timestamp: ${timestampSeconds}`;
+                                      displayValue = `${t('vmQuery_invalidDateFromTimestampText')} ${timestampSeconds}`;
                                       hasError = true;
                                   } else {
                                       displayValue = date.toLocaleString();
                                   }
                               }
                           } catch (dateError: any) {
-                              displayValue = `Date conversion error: ${dateError.message || String(dateError)}`;
+                              displayValue = `${t('vmQuery_dateConversionErrorText')} ${dateError.message || String(dateError)}`;
                               hasError = true;
                           }
-                      } else if (originalItemIndexInGroup === 5) { 
+                      } else if (originalItemIndexInGroup === 5) { // Hash Value or Transaction ID
                           displayValue = hexString;
-                      } else { 
+                      } else { // Token Name, NFT Name
                           try {
                               displayValue = new TextDecoder('utf-8', { fatal: true }).decode(byteArray);
                               if (displayValue.length === 0 && byteArray.length > 0) { 
                                  displayValue = hexString; 
                               } else if (displayValue.length === 0 && byteArray.length === 0) {
-                                 displayValue = "(empty)"; 
+                                 displayValue = t('vmQuery_emptyText'); 
                               }
                           } catch (utfError) {
                               if (hexString.length > 128) hexString = hexString.substring(0,128) + "...";
@@ -347,11 +346,11 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                       }
                     }
                   } catch (e) { 
-                    displayValue = `Base64 decoding error: ${e instanceof Error ? e.message : String(e)}`;
+                    displayValue = `${t('vmQuery_base64DecodingErrorText')} ${e instanceof Error ? e.message : String(e)}`;
                     hasError = true;
                   }
                 } else {
-                  displayValue = "(Data N/A)";
+                  displayValue = t('vmQuery_dataNAText');
                   hasError = true;
                 }
               }
@@ -364,23 +363,23 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                   <span className="block text-xs font-medium text-muted-foreground mb-1">
                     {itemLabel}
                   </span>
-                  {(itemLabel === "Transaction ID" && !hasError && displayValue && displayValue !== "(empty)" && displayValue !== "(Data N/A)" && !displayValue.startsWith("Error")) ? (
+                  {(itemLabel === t('vmQuery_transactionIDLabel') && !hasError && displayValue && displayValue !== t('vmQuery_emptyText') && displayValue !== t('vmQuery_dataNAText') && !displayValue.startsWith(t('vmQuery_errorTitle'))) ? (
                     <a
                       href={`${currentConfig.explorer}/transactions/${displayValue}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
-                      title={`View transaction ${displayValue} on Explorer`}
+                      title={`${t('vmQuery_viewTransactionTitle')} ${displayValue} on Explorer`}
                     >
                       {displayValue}
                     </a>
-                  ) : (itemLabel === "NFT ID" && !hasError && displayValue && !displayValue.startsWith("Error") && displayValue !== "(Data N/A)") ? (
+                  ) : (itemLabel === t('vmQuery_nftIDLabel') && !hasError && displayValue && !displayValue.startsWith(t('vmQuery_errorTitle')) && displayValue !== t('vmQuery_dataNAText') && !displayValue.startsWith(t('vmQuery_couldNotConstructNftIdText'))) ? (
                     <a
                       href={`${currentConfig.explorer}/nfts/${displayValue}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-mono break-all whitespace-pre-wrap text-primary hover:underline"
-                      title={`View NFT ${displayValue} on Explorer`}
+                      title={`${t('vmQuery_viewNFTTitle')} ${displayValue} on Explorer`}
                     >
                       {displayValue}
                     </a>
@@ -404,7 +403,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
          <div className="space-y-6">
             <form onSubmit={handleSubmit}>
                 <div className="space-y-2">
-                    <Label htmlFor="scAddress" className="font-semibold">Smart Contract Address</Label>
+                    <Label htmlFor="scAddress" className="font-semibold">{t('vmQuery_smartContractAddress')}</Label>
                     <Input
                     id="scAddress"
                     placeholder="erd1..."
@@ -415,7 +414,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     />
                 </div>
                 <div className="space-y-2 mt-4">
-                    <Label htmlFor="funcName" className="font-semibold">Function Name</Label>
+                    <Label htmlFor="funcName" className="font-semibold">{t('vmQuery_functionName')}</Label>
                     <Input
                     id="funcName"
                     placeholder="getFunction"
@@ -427,16 +426,16 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                 </div>
                 
                 <div className="space-y-3 mt-4">
-                    <Label className="font-semibold">Arguments</Label>
+                    <Label className="font-semibold">{t('vmQuery_arguments')}</Label>
                     {args.map((arg, index) => (
                     <div key={index} className="flex items-center space-x-2">
                         <Input
                         type="text"
-                        placeholder={`Argument ${index + 1}`}
+                        placeholder={`${t('vmQuery_argumentPlaceholder')} ${index + 1}`}
                         value={arg}
                         onChange={(e) => handleArgChange(index, e.target.value)}
                         className="text-sm flex-grow"
-                        aria-label={`Argument ${index + 1}`}
+                        aria-label={`${t('vmQuery_argumentPlaceholder')} ${index + 1}`}
                         />
                         { (args.length > 1 || (args.length === 1 && args[0] !== "")) ? (
                         <Button
@@ -444,7 +443,8 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                             variant="ghost"
                             size="icon"
                             onClick={() => removeArgField(index)}
-                            aria-label={`Remove argument ${index + 1}`}
+                            aria-label={`${t('vmQuery_removeArgument')} ${index + 1}`}
+                            title={`${t('vmQuery_removeArgument')} ${index + 1}`}
                             className="text-destructive hover:text-destructive/90"
                         >
                             <XCircle className="h-5 w-5" />
@@ -461,7 +461,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                     className="text-sm border-dashed hover:bg-accent/10 hover:text-accent mt-2"
                     >
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Argument
+                    {t('vmQuery_addArgument')}
                     </Button>
                 </div>
                 <CardFooter className="flex flex-col items-start space-y-4 pt-6 px-0 pb-0">
@@ -473,10 +473,10 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
                         {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Querying...
+                            {t('vmQuery_querying')}
                         </>
                         ) : (
-                        'Submit Query'
+                        t('vmQuery_submitQuery')
                         )}
                     </Button>
                 </CardFooter>
@@ -487,14 +487,14 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       { (isLoading && isAutoMode) && 
         <div className="p-6 flex items-center justify-center">
             <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
-            <p className="text-muted-foreground">Querying with file hash...</p>
+            <p className="text-muted-foreground">{t('vmQuery_queryingWithFileHash')}</p>
         </div>
       }
       {error && (
         <div className="p-6 pt-0"> 
           <Alert variant="destructive" className="w-full mt-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>{t('vmQuery_errorTitle')}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         </div>
@@ -504,7 +504,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
         <div className="pt-0"> 
           <Card className="w-full mt-2 shadow-md">
             <CardHeader>
-              <CardTitle className="text-xl text-primary">Blockchain Response</CardTitle>
+              <CardTitle className="text-xl text-primary">{t('vmQuery_blockchainResponse')}</CardTitle>
             </CardHeader>
             <CardContent>
               {renderDecodedReturnData()}
@@ -514,7 +514,7 @@ export default function VmQueryForm({ initialArg0, onInitialArgConsumed, isAutoM
       )}
        {result && !result.data?.data?.returnData && !error && !isLoading && (
         <div className="p-6 text-center text-muted-foreground"> 
-            {(isAutoMode && !initialArg0) ? "Awaiting file hash for query..." : "No data returned or an issue occurred."}
+            {(isAutoMode && !initialArg0) ? t('vmQuery_awaitingFileHash') : t('vmQuery_noDataOrIssue')}
         </div>
        )}
     </div>

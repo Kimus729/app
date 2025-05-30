@@ -2,12 +2,13 @@
 "use client";
 
 import { useState, useCallback, DragEvent, ChangeEvent } from 'react';
-import { Card, CardContent } from '@/components/ui/card'; // Removed CardDescription, CardHeader, CardTitle
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UploadCloud, FileText, XCircle, AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/contexts/LocaleContext'; // Import useLocale
 
 interface FileHashCalculatorProps {
   onHashCalculated?: (hash: string) => void;
@@ -15,6 +16,7 @@ interface FileHashCalculatorProps {
 }
 
 export default function FileHashCalculator({ onHashCalculated, onFileCleared }: FileHashCalculatorProps) {
+  const { t } = useLocale(); // Get t function
   const [file, setFile] = useState<File | null>(null);
   const [hash, setHash] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
 
   const processFile = async (selectedFile: File | null) => {
     if (!selectedFile) {
-      clearFile(); // Call clearFile which now handles onFileCleared
+      clearFile();
       return;
     }
 
@@ -49,7 +51,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
     } catch (e: any) {
       console.error("Hashing Error:", e);
       setError(e.message || 'An unexpected error occurred during hashing.');
-      setFile(null); // Clear file on error to prevent inconsistent state
+      setFile(null); 
     } finally {
       setIsLoading(false);
     }
@@ -78,13 +80,14 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
       await processFile(droppedFile);
       event.dataTransfer.clearData();
     }
-  }, []); // Removed 'processFile' dependency which was causing issues without memoization of processFile
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   const handleFileInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       await processFile(event.target.files[0]);
     } else {
-      await processFile(null); // Clear if no file selected
+      await processFile(null); 
     }
   };
 
@@ -95,7 +98,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
     setIsLoading(false);
     const fileInput = document.getElementById('file-upload-input') as HTMLInputElement;
     if (fileInput) {
-      fileInput.value = ''; // Reset the file input
+      fileInput.value = ''; 
     }
     if (onFileCleared) {
       onFileCleared();
@@ -104,8 +107,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
 
   return (
     <Card className="w-full shadow-xl">
-      {/* CardHeader containing Title and Description has been removed */}
-      <CardContent className="space-y-6 pt-6"> {/* Added pt-6 to CardContent to maintain some top padding if needed */}
+      <CardContent className="space-y-6 pt-6">
         <div
           className={cn(
             "flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
@@ -118,16 +120,16 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
           onClick={() => document.getElementById('file-upload-input')?.click()}
           role="button"
           tabIndex={0}
-          aria-label="File upload drop zone"
+          aria-label={t('fileHash_uploadOrDrag')}
         >
           <UploadCloud className={cn("h-12 w-12 mb-4", isDragging ? "text-primary" : "text-muted-foreground")} />
           <p className="mb-2 text-sm text-muted-foreground">
-            <span className="font-semibold">Click to upload</span> or drag and drop
+            <span className="font-semibold">{t('fileHash_uploadOrDrag').split(' ou ')[0]}</span> {t('fileHash_uploadOrDrag').includes('ou') ? 'ou' + t('fileHash_uploadOrDrag').split('ou')[1] : ''}
           </p>
-          <p className="text-xs text-muted-foreground">Any file type</p>
+          <p className="text-xs text-muted-foreground">{t('fileHash_anyFileType')}</p>
           <div className="flex items-center mt-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-3 w-3 mr-1 text-green-500" />
-            <span>File processed locally. No data is sent to the web.</span>
+            <span>{t('fileHash_processedLocally')}</span>
           </div>
           <Input
             id="file-upload-input"
@@ -140,7 +142,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
         {error && (
           <Alert variant="destructive" className="w-full">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>{t('fileHash_errorTitle')}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -148,12 +150,12 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
         {file && !error && (
           <div className="p-4 border rounded-md bg-card space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 min-w-0"> {/* Added min-w-0 for truncation */}
+                <div className="flex items-center space-x-2 min-w-0">
                     <FileText className="h-5 w-5 text-primary shrink-0" />
                     <span className="text-sm font-medium truncate" title={file.name}>{file.name}</span>
                     <span className="text-xs text-muted-foreground shrink-0">({(file.size / 1024).toFixed(2)} KB)</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={clearFile} aria-label="Clear file" className="text-muted-foreground hover:text-destructive shrink-0">
+                <Button variant="ghost" size="icon" onClick={clearFile} aria-label={t('fileHash_clearFile')} title={t('fileHash_clearFile')} className="text-muted-foreground hover:text-destructive shrink-0">
                     <XCircle className="h-5 w-5" />
                 </Button>
             </div>
@@ -161,13 +163,13 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
             {isLoading && (
               <div className="flex items-center text-sm text-muted-foreground">
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Calculating hash...
+                {t('fileHash_calculating')}
               </div>
             )}
 
             {hash && !isLoading && (
               <div>
-                <p className="text-sm font-semibold text-primary mb-1">SHA256 Hash:</p>
+                <p className="text-sm font-semibold text-primary mb-1">{t('fileHash_sha256Hash')}</p>
                 <pre className="text-xs font-mono bg-muted/80 p-3 rounded-md break-all overflow-x-auto select-all">
                   {hash}
                 </pre>
@@ -177,7 +179,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
         )}
          {!file && !error && !isLoading && (
           <div className="text-center text-sm text-muted-foreground py-4">
-            No file selected.
+            {t('fileHash_noFileSelected')}
           </div>
         )}
       </CardContent>

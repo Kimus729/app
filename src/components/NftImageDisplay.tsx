@@ -4,10 +4,11 @@
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, ImageOff, Film, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { AlertCircle, ImageOff, Film, Play, Pause, Volume2, VolumeX, Download } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 import { Button } from '@/components/ui/button';
+import { useLocale } from '@/contexts/LocaleContext'; // Import useLocale
 
 interface NftImageDisplayProps {
   nftId: string | null;
@@ -17,6 +18,7 @@ const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
 
 const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
   const { currentConfig } = useEnvironment();
+  const { t } = useLocale(); // Get t function
   const [actualImageUrl, setActualImageUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -38,7 +40,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     setIsMuted(true);   
 
     if (!nftId || nftId.startsWith("Error:")) {
-      setFetchError(nftId?.startsWith("Error:") ? nftId : "Invalid NFT ID provided for media lookup.");
+      setFetchError(nftId?.startsWith("Error:") ? nftId : t('nftDisplay_invalidNftIdError'));
       return;
     }
 
@@ -49,7 +51,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
-          throw new Error(`API Error ${response.status}: ${responseData.message || response.statusText}`);
+          throw new Error(`${t('nftDisplay_apiError')} ${response.status}: ${responseData.message || response.statusText}`);
         }
         
         const data = responseData;
@@ -83,7 +85,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
             }
              try {
                 const metaResponse = await fetch(metadataUri);
-                if (!metaResponse.ok) throw new Error(`Metadata URI Error ${metaResponse.status}: ${metaResponse.statusText}`);
+                if (!metaResponse.ok) throw new Error(`${t('nftDisplay_metadataUriError')} ${metaResponse.status}: ${metaResponse.statusText}`);
                 const metaData = await metaResponse.json();
                 
                 mediaUrl = metaData.image || metaData.image_url || metaData.animation_url || metaData.media?.url;
@@ -97,24 +99,25 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
                     setActualImageUrl(mediaUrl);
                     setMediaType(determinedMediaType);
                 } else {
-                    setFetchError('No media URL found in NFT metadata fetched from URI.');        
+                    setFetchError(t('nftDisplay_noMediaUrlInMetaError'));        
                 }
              } catch (e: any) {
-                setFetchError(`Error fetching/parsing metadata from URI: ${e.message}`);
+                setFetchError(`${t('nftDisplay_errorFetchingMetaError')} ${e.message}`);
              }
           } else {
-            setFetchError('No direct media URL or metadata URI found in NFT API response.');
+            setFetchError(t('nftDisplay_noDirectMediaOrMetaUriError'));
           }
         }
       } catch (e: any) {
-        setFetchError(e.message || 'Failed to fetch NFT media information.');
+        setFetchError(e.message || t('nftDisplay_failedToFetchInfoError'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchNftMediaUrl();
-  }, [nftId, currentConfig.api]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nftId, currentConfig.api, t]);
 
   const handleMediaError = () => {
     setMediaLoadError(true);
@@ -138,6 +141,17 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       setIsMuted(videoRef.current.muted);
     }
   };
+
+  const handleDownload = () => {
+    if (actualImageUrl) {
+      const link = document.createElement('a');
+      link.href = actualImageUrl;
+      link.download = nftId ? `${nftId}_media.${actualImageUrl.split('.').pop() || 'mp4'}` : `media.${actualImageUrl.split('.').pop() || 'mp4'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
   
   useEffect(() => {
     const video = videoRef.current;
@@ -157,7 +171,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     return (
       <div className="mt-4 p-3 flex flex-col items-center justify-center h-48">
         <Skeleton className="h-36 w-full rounded-md" />
-        <p className="text-sm text-muted-foreground mt-2">Loading media...</p>
+        <p className="text-sm text-muted-foreground mt-2">{t('nftDisplay_loadingMedia')}</p>
       </div>
     );
   }
@@ -166,7 +180,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     return (
       <Alert variant="destructive" className="mt-4">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Media Fetch Error</AlertTitle>
+        <AlertTitle>{t('nftDisplay_mediaFetchErrorTitle')}</AlertTitle>
         <AlertDescription>{fetchError}</AlertDescription>
       </Alert>
     );
@@ -176,7 +190,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
      return (
       <div className="mt-4 p-3 flex flex-col items-center justify-center h-48 text-muted-foreground border rounded-lg bg-secondary/10">
         <ImageOff className="h-12 w-12 mb-2" />
-        <p className="text-sm">No media to display for this NFT.</p>
+        <p className="text-sm">{t('nftDisplay_noMediaToDisplay')}</p>
       </div>
     );
   }
@@ -186,7 +200,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       <div className="mt-4 p-3 flex flex-col items-center justify-center text-muted-foreground border rounded-lg">
         <div className="bg-destructive/10 p-3 rounded-md w-full flex flex-col items-center">
           {mediaType === 'video' ? <Film className="h-12 w-12 mb-2 text-destructive" /> : <ImageOff className="h-12 w-12 mb-2 text-destructive" /> }
-          <p className="text-sm">Could not load media from URL.</p>
+          <p className="text-sm">{t('nftDisplay_couldNotLoadMedia')}</p>
         </div>
       </div>
     );
@@ -196,7 +210,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
     return (
       <div className="mt-4 p-3 flex flex-col items-center justify-center h-48 text-muted-foreground border rounded-lg bg-secondary/10">
         <ImageOff className="h-12 w-12 mb-2" />
-        <p className="text-sm">No media URL available for this NFT.</p>
+        <p className="text-sm">{t('nftDisplay_noMediaUrlAvailable')}</p>
       </div>
     );
   }
@@ -208,7 +222,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       onMouseLeave={() => mediaType === 'video' && setIsHovering(false)}
     >
       {actualImageUrl && mediaType === 'video' && !mediaLoadError && (
-        <div className="relative w-full max-w-md mx-auto"> {/* Max width for video container */}
+        <div className="relative w-full max-w-md mx-auto">
           <video
             ref={videoRef}
             src={actualImageUrl}
@@ -224,12 +238,15 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
             data-ai-hint="nft video"
           />
           {isHovering && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 p-2 bg-black/50 flex items-center justify-center space-x-3 transition-opacity duration-300 rounded-md">
-              <Button variant="ghost" size="icon" onClick={togglePlayPause} className="text-white hover:text-gray-300">
-                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 p-2 bg-black/50 flex items-center justify-center space-x-2 transition-opacity duration-300 rounded-md">
+              <Button variant="ghost" size="icon" onClick={togglePlayPause} className="text-white hover:text-gray-300 h-8 w-8">
+                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:text-gray-300">
-                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:text-gray-300 h-8 w-8">
+                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={handleDownload} className="text-white hover:text-gray-300 h-8 w-8" title={t('nftDisplay_downloadButtonLabel')}>
+                <Download className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -238,7 +255,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       {actualImageUrl && mediaType === 'image' && !mediaLoadError && (
         <Image
           src={actualImageUrl}
-          alt={nftId ? `Media for ${nftId}` : 'NFT Media'}
+          alt={nftId ? `${t('nftDisplay_mediaForAlt')} ${nftId}` : t('nftDisplay_nftMediaAlt')}
           width={300}
           height={200}
           className="rounded-md object-contain max-h-60 w-auto"
@@ -250,7 +267,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
       {fetchError && ( 
         <Alert variant="destructive" className="mt-2 w-full text-xs">
           <AlertCircle className="h-3 w-3" />
-          <AlertTitle className="text-xs">Partial Error</AlertTitle>
+          <AlertTitle className="text-xs">{t('nftDisplay_partialErrorTitle')}</AlertTitle>
           <AlertDescription className="text-xs">{fetchError}</AlertDescription>
         </Alert>
       )}
