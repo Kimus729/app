@@ -47,8 +47,8 @@ export const translations: Record<string, Record<Locale, string>> = {
 
   // For file-hash-calculator.tsx
   fileHash_uploadOrDrag: {
-    fr: 'Cliquez pour charger',
-    en: 'Click to upload',
+    fr: 'Cliquez pour charger ou glissez-déposez',
+    en: 'Click to upload or drag and drop',
   },
   fileHash_anyFileType: {
     fr: 'Tout type de fichier',
