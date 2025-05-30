@@ -124,7 +124,7 @@ export default function FileHashCalculator({ onHashCalculated, onFileCleared }: 
         >
           <UploadCloud className={cn("h-12 w-12 mb-4", isDragging ? "text-primary" : "text-muted-foreground")} />
           <p className="mb-2 text-sm text-muted-foreground">
-            <span className="font-semibold">{t('fileHash_uploadOrDrag').split(' ou ')[0]}</span> {t('fileHash_uploadOrDrag').includes('ou') ? 'ou' + t('fileHash_uploadOrDrag').split('ou')[1] : ''}
+            <span className="font-semibold">{t('fileHash_uploadOrDrag')}</span>
           </p>
           <p className="text-xs text-muted-foreground">{t('fileHash_anyFileType')}</p>
           <div className="flex items-center mt-2 text-xs text-muted-foreground">
