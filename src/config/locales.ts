@@ -15,8 +15,8 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: "YOURDECISIONS App" // Placeholder, can be refined
   },
   appMetaDescription: {
-    fr: "Interrogez facilement les données de la VM MultiversX.",
-    en: "Query MultiversX VM data with ease."
+    fr: "Empreinte de fichier sur Blockchain", // Updated
+    en: "File Fingerprint on Blockchain" // Added corresponding English translation
   },
 
   // For page.tsx
@@ -200,10 +200,6 @@ export const translations: Record<string, Record<Locale, string>> = {
   nftDisplay_nftMediaAlt: {
     fr: 'Média NFT',
     en: 'NFT Media',
-  },
-  nftDisplay_downloadButtonLabel: {
-    fr: 'Télécharger la vidéo',
-    en: 'Download video',
   },
   nftDisplay_invalidNftIdError: {
     fr: "ID NFT invalide fourni pour la recherche de média.",
