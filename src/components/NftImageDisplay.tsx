@@ -224,7 +224,7 @@ const NftImageDisplay: React.FC<NftImageDisplayProps> = ({ nftId }) => {
             data-ai-hint="nft video"
           />
           {isHovering && (
-            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 flex items-center justify-center space-x-3 transition-opacity duration-300">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 p-2 bg-black/50 flex items-center justify-center space-x-3 transition-opacity duration-300 rounded-md">
               <Button variant="ghost" size="icon" onClick={togglePlayPause} className="text-white hover:text-gray-300">
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </Button>
