@@ -23,7 +23,7 @@ export const ENVIRONMENTS = {
     explorer: 'https://explorer.multiversx.com',
     label: 'Mainnet',
     // Using Testnet values as placeholders for Mainnet as per user request
-    defaultScAddress: 'erd1qqqqqqqqqqqqqpgq8h2t00afvdpu0jm8hhppmsf93etjkljc0qeswvtukn',
+    defaultScAddress: 'erd1qqqqqqqqqqqqqpgq80qxhwd9cp037sy9qfk204hkryzdl7jsld2swlj3eq',
     defaultFuncName: 'getPrintInfoFromHash',
   },
 };
