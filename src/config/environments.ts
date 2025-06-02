@@ -1,3 +1,4 @@
+
 // src/config/environments.ts
 export const ENVIRONMENTS = {
   devnet: {
@@ -13,7 +14,7 @@ export const ENVIRONMENTS = {
     api: 'https://testnet-api.multiversx.com',
     explorer: 'https://testnet-explorer.multiversx.com',
     label: 'Testnet',
-    defaultScAddress: 'erd1qqqqqqqqqqqqqpgq8h2t00afvdpu0jm8hhppmsf93etjkljc0qeswvtukn',
+    defaultScAddress: 'erd1qqqqqqqqqqqqqpgqgknuqz500yyedxkukz77v96n5fu4pv9j0qeseu25ch',
     defaultFuncName: 'getPrintInfoFromHash',
   },
   mainnet: {
@@ -33,3 +34,4 @@ export type EnvironmentKey = keyof typeof ENVIRONMENTS;
 export type EnvironmentConfig = typeof ENVIRONMENTS[EnvironmentKey];
 
 export const DEFAULT_ENVIRONMENT: EnvironmentKey = 'devnet';
+
