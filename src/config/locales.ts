@@ -121,8 +121,8 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'Error',
   },
   vmQuery_blockchainResponse: {
-    fr: 'Réponse Blockchain',
-    en: 'Blockchain Response',
+    fr: 'Enregistrement Blockchain',
+    en: 'Blockchain Record',
   },
   vmQuery_noReturnItems: {
     fr: 'Aucun élément retourné à afficher.',
@@ -241,3 +241,4 @@ export const translations: Record<string, Record<Locale, string>> = {
     en: 'Select Environment',
   },
 };
+
